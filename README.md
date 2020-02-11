@@ -6,7 +6,7 @@
 - Possibly make the generation process faster.
 - Better visual GUI
 - More than just piano sounds.
-  - For the time being you can change the sounds yourself by going to the [Piano Samples](Piano%Samples) folder and edit them yourself. ***DO NOT CHANGE THE FILE NAMES! If you do the program will not work and it will crash.***
+  - For the time being you can change the sounds yourself by going to the [Piano Samples](Piano%20Samples) folder and edit them yourself. ***DO NOT CHANGE THE FILE NAMES! If you do the program will not work and it will crash.***
 - Better generating algorithms.
 ## ToDo 
 - [x] Generate song.
