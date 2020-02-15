@@ -10,11 +10,12 @@
 - Better generating algorithms.
 ## ToDo 
 - [x] Generate song.
-- [ ] Complete Random algorithm.
+- [x] Complete Random algorithm.
 - [x] Make loading `.json` file system.
-- [ ] Make writing `.json` file system.
-- [ ] Adding custom genres.
-  - [ ] Editing genres.
+- [x] Make writing `.json` file system.
+- [x] Adding custom genres.
+  - [ ] Create genres
+  - [x] Editing genres.
   - [ ] Deleting genres.
 ## Bugs
 - Audio clipping with `demisemiquaver` & `semiquaver` note.
