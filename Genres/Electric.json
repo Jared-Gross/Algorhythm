@@ -1,0 +1,216 @@
+[
+    {
+        "Name": [
+            "Electric"
+        ],
+        "Notes": [
+            {
+                "C1": [
+                    "True"
+                ],
+                "C#1": [
+                    "False"
+                ],
+                "D1": [
+                    "False"
+                ],
+                "Eb1": [
+                    "False"
+                ],
+                "E1": [
+                    "False"
+                ],
+                "F1": [
+                    "False"
+                ],
+                "F#1": [
+                    "False"
+                ],
+                "G1": [
+                    "True"
+                ],
+                "Ab1": [
+                    "True"
+                ],
+                "A1": [
+                    "False"
+                ],
+                "Bb1": [
+                    "False"
+                ],
+                "B1": [
+                    "False"
+                ],
+                "C2": [
+                    "False"
+                ],
+                "C#2": [
+                    "False"
+                ],
+                "D2": [
+                    "True"
+                ],
+                "Eb2": [
+                    "False"
+                ],
+                "E2": [
+                    "False"
+                ],
+                "F2": [
+                    "False"
+                ],
+                "F#2": [
+                    "False"
+                ],
+                "G2": [
+                    "True"
+                ],
+                "Ab2": [
+                    "False"
+                ],
+                "A2": [
+                    "False"
+                ],
+                "Bb2": [
+                    "False"
+                ],
+                "B2": [
+                    "False"
+                ],
+                "C3": [
+                    "False"
+                ],
+                "C#3": [
+                    "True"
+                ],
+                "D3": [
+                    "False"
+                ],
+                "Eb3": [
+                    "True"
+                ],
+                "E3": [
+                    "True"
+                ],
+                "F3": [
+                    "False"
+                ],
+                "F#3": [
+                    "False"
+                ],
+                "G3": [
+                    "True"
+                ],
+                "Ab3": [
+                    "True"
+                ],
+                "A3": [
+                    "False"
+                ],
+                "Bb3": [
+                    "False"
+                ],
+                "B3": [
+                    "False"
+                ],
+                "C4": [
+                    "False"
+                ],
+                "C#4": [
+                    "False"
+                ],
+                "D4": [
+                    "True"
+                ],
+                "Eb4": [
+                    "False"
+                ],
+                "E4": [
+                    "False"
+                ],
+                "F4": [
+                    "False"
+                ],
+                "F#4": [
+                    "True"
+                ],
+                "G4": [
+                    "True"
+                ],
+                "Ab4": [
+                    "False"
+                ],
+                "A4": [
+                    "False"
+                ],
+                "Bb4": [
+                    "False"
+                ],
+                "B4": [
+                    "False"
+                ],
+                "C5": [
+                    "False"
+                ],
+                "C#5": [
+                    "False"
+                ],
+                "D5": [
+                    "False"
+                ],
+                "Eb5": [
+                    "False"
+                ],
+                "E5": [
+                    "False"
+                ],
+                "F5": [
+                    "False"
+                ],
+                "F#5": [
+                    "False"
+                ],
+                "G5": [
+                    "False"
+                ],
+                "Ab5": [
+                    "False"
+                ],
+                "A5": [
+                    "False"
+                ],
+                "Bb5": [
+                    "False"
+                ],
+                "B5": [
+                    "False"
+                ],
+                "C6": [
+                    "False"
+                ]
+            }
+        ],
+        "Note Types": [
+            {
+                "Semibreve": [
+                    "False"
+                ],
+                "Minim": [
+                    "True"
+                ],
+                "Crochet": [
+                    "True"
+                ],
+                "Quaver": [
+                    "True"
+                ],
+                "Semiquaver": [
+                    "False"
+                ],
+                "Demisemiquaver": [
+                    "False"
+                ]
+            }
+        ]
+    }
+]
