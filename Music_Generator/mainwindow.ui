@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>820</width>
-    <height>686</height>
+    <width>573</width>
+    <height>472</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -53,7 +53,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_1">
        <property name="sizePolicy">
@@ -82,8 +82,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>778</width>
-             <height>265</height>
+             <width>529</width>
+             <height>150</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="gridLayout">
@@ -232,8 +232,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>576</width>
-               <height>544</height>
+               <width>390</width>
+               <height>346</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_10">
@@ -273,8 +273,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>188</width>
-                 <height>388</height>
+                 <width>125</width>
+                 <height>215</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="gridLayout_11">
@@ -351,24 +351,31 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>820</width>
-     <height>23</height>
+     <width>573</width>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menutest">
     <property name="title">
-     <string>Fi&amp;le</string>
+     <string>&amp;File</string>
     </property>
     <addaction name="actionExport"/>
     <addaction name="action_Import"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
-     <string>Help</string>
+     <string>&amp;Help</string>
     </property>
+   </widget>
+   <widget class="QMenu" name="menu_View">
+    <property name="title">
+     <string>&amp;Settings</string>
+    </property>
+    <addaction name="actionPrefrences"/>
    </widget>
    <addaction name="menutest"/>
    <addaction name="menuHelp"/>
+   <addaction name="menu_View"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionExport">
@@ -382,6 +389,11 @@
   <action name="action_Import">
    <property name="text">
     <string>&amp;Import</string>
+   </property>
+  </action>
+  <action name="actionPrefrences">
+   <property name="text">
+    <string>Prefrences</string>
    </property>
   </action>
  </widget>
