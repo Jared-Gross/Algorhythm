@@ -1,0 +1,106 @@
+/*
+QWidget {
+   background-color: #222222;
+}
+QLineEdit {
+   background-color: aliceblue;
+   color: #618b38;
+   font-style: italic;
+   font-weight: bold;
+}
+
+QLabel {
+   background-color: #222222;
+   color: #618b38;
+}
+
+QPushButton {
+   background-color: #8b0000;
+   color: #ffffff;
+   border-radius: 5px;
+   border-style: none;
+   height: 25px;
+} */
+QPushButton#whiteOn {
+    background-color: rgb(127, 255, 127); 
+    color: black; 
+    border-radius: 3px; 
+    border: 1px solid black;
+}
+
+QPushButton#whiteOn:hover {
+    background-color: rgb(107, 255, 107); 
+    color: black; 
+    border-radius: 3px; 
+    border: 1px solid black;
+}
+
+QPushButton#whiteOn:pressed {
+    background-color: rgb(87, 255, 87); 
+    color: black; 
+    border-radius: 3px; 
+    border: 1px solid black;
+}
+QPushButton#whiteOff {
+    background-color: rgb(255, 127, 127); 
+    color: black; 
+    border-radius: 3px; 
+    border: 1px solid black;
+}
+
+QPushButton#whiteOff:hover {
+    background-color: rgb(255, 107, 107); 
+    color: black; 
+    border-radius: 3px; 
+    border: 1px solid black;
+}
+
+QPushButton#whiteOff:pressed {
+    background-color: rgb(255, 87, 87); 
+    color: black; 
+    border-radius: 3px; 
+    border: 1px solid black; 
+}
+
+
+
+QPushButton#blackOn {
+    background-color: rgb(50, 255, 50); 
+    color: black; 
+    border-radius: 3px; 
+    border: 1px solid black;
+}
+
+QPushButton#blackOn:hover {
+    background-color: rgb(30, 255, 30); 
+    color: black; 
+    border-radius: 3px; 
+    border: 1px solid black;
+}
+
+QPushButton#blackOn:pressed {
+    background-color: rgb(10, 255, 10); 
+    color: black; 
+    border-radius: 3px; 
+    border: 1px solid black;
+}
+QPushButton#blackOff {
+    background-color: rgb(255, 50, 50); 
+    color: black; 
+    border-radius: 3px; 
+    border: 1px solid black;
+}
+
+QPushButton#blackOff:hover {
+    background-color: rgb(255, 30, 30); 
+    color: black; 
+    border-radius: 3px; 
+    border: 1px solid black;
+}
+
+QPushButton#blackOff:pressed {
+    background-color: rgb(255, 10, 10); 
+    color: black; 
+    border-radius: 3px; 
+    border: 1px solid black; 
+}
