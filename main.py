@@ -1,6 +1,6 @@
 from pydub import AudioSegment
 from pydub.playback import play
-import os, json, sys, random, threading, glob, datetime, atexit
+import os, json, sys, random, threading, glob, datetime, atexit, subprocess
 import webbrowser as wb
 from PyQt5.QtMultimediaWidgets import *
 from PyQt5.QtMultimedia import *
@@ -10,6 +10,10 @@ from PyQt5.QtGui import *
 from PyQt5 import *
 from PyQt5 import QtWidgets, uic
 from functools import partial
+
+if sys.platform == "linux" or sys.platform == "linux2": current_platform = 'Linux'
+elif sys.platform == "darwin": current_platform = 'Mac'
+elif sys.platform == "win32": current_platform = 'Windows'
 
 piano_samples = 'Piano Samples/'
 image_folder = 'Images/'
@@ -42,52 +46,53 @@ for i in all_genre_files:
     i = i.replace(genres_folder, '')
     i = i.replace('.json', '')
     genre_names.append(i)
-
-with open(keys_file) as file:
-    keys_json = json.load(file)
+with open(keys_file) as file: keys_json = json.load(file)
 with open(genres_file) as file:
     genres_json = json.load(file)
     for i, noteState in enumerate(genres_json[0]['Notes']):
-        for j, k in enumerate(keys_json[0]['keys']):
-            note_states.append(noteState[str(k)][0])
+        for j, k in enumerate(keys_json[0]['keys']): note_states.append(noteState[str(k)][0])
     for i, noteState in enumerate(genres_json[0]['Note Types']):
-        for j, k in enumerate(note_types):
-            note_type_states.append(noteState[str(k)][0])
+        for j, k in enumerate(note_types): note_type_states.append(noteState[str(k)][0])
 
 # CONFIG JSON
 theme = []
+name = []
 config_json = {}
-class Ui(QMainWindow):
-    def __init__(self):
-        super(Ui, self).__init__()
+class mainwindowUI(QMainWindow):
+    def __init__(self, parent = None):
+        super(mainwindowUI, self).__init__(parent)
         uic.loadUi('Music_Generator/mainwindow.ui', self)
-        self.setStyleSheet(open("style.qss", "r").read())
+        # self.setStyleSheet(open("style.qss", "r").read())
         self.btnGenerate = self.findChild(QPushButton, 'btnGenerate_2')
         self.btnGenerate.clicked.connect(partial(self.btnGenerateClicked))
-        
+
         self.btnClear = self.findChild(QPushButton, 'btnClear')
         self.btnClear.clicked.connect(self.btnClearGrid)
 
         self.inputSongLength = self.findChild(QDoubleSpinBox,'inputSongLength_4')
-        
+
         self.genAlgorithms = self.findChild(QComboBox, 'genAlgorithms_4')
         self.genAlgorithms.setToolTip('Diffrent algorithms of music generation.')
         self.genAlgorithms.addItem('Random')
-        
+
         self.genresComboBox = self.findChild(QComboBox, 'genresComboBox')
         self.genresComboBox.addItems(genre_names)
         self.genresComboBox.currentIndexChanged.connect(self.updateNotes)
-        
+
         self.NoteGridLayout = self.findChild(QGridLayout,'NoteGridLayout')
         self.NoteTypeGridLayout = self.findChild(QGridLayout,'NoteTypeGridLayout')
         self.gridMusicProgressGridLayout = self.findChild(QGridLayout,'gridMusicProgress')
-        
+
         self.actionExport = self.findChild(QAction, 'actionExport')
         self.actionExport.setStatusTip('Export all saved genres to *.csv')
-                
+
+        self.actionPrefrences = self.findChild(QAction, 'actionPrefrences')
+        self.actionPrefrences.setStatusTip('Change window settings.')
+        self.actionPrefrences.triggered.connect(self.open_settings_window)
+
         self.UINotes()
         self.resize(700,600)
-        self.show() 
+        self.show()
     def UINotes(self):
         colSize = 12
         for i, j in enumerate(keys_json[0]['keys']):
@@ -123,11 +128,6 @@ class Ui(QMainWindow):
         global genres_json, genre_names, note_states, note_type_states
         temp_note_type_list_states = note_type_states
         temp_note_list_states = note_states
-        if self.genresComboBox.currentIndex() != 0:
-            temp_last_selected_genre = 0
-        else:
-            temp_last_selected_genre = self.genresComboBox.currentIndex()
-
         for i, j in enumerate(note_types):
             if j == name:
                 if temp_note_type_list_states[i] == 'True': temp_note_type_list_states[i] = 'False'
@@ -136,7 +136,7 @@ class Ui(QMainWindow):
             if j == name:
                 if temp_note_list_states[i] == 'True': temp_note_list_states[i] = 'False'
                 else: temp_note_list_states[i] = 'True'
-                
+
         genres_json.pop(0)
         genres_json.append(
             {
@@ -350,34 +350,22 @@ class Ui(QMainWindow):
                         "Demisemiquaver": [
                             str(temp_note_type_list_states[5])
                         ]
-                    }        
+                    }
                 ]
             }
         )
-        
-        with open(genres_file, mode='w+', encoding='utf-8') as file:
-            json.dump(genres_json, file, ensure_ascii=True, indent=4)
-        # print(state.isChecked())
-
-        # genre_names.clear()
+        with open(genres_file, mode='w+', encoding='utf-8') as file: json.dump(genres_json, file, ensure_ascii=True, indent=4)
         note_states.clear()
         note_type_states.clear()
-        
         with open(genres_file) as file:
             genres_json = json.load(file)
             for i, noteState in enumerate(genres_json[0]['Notes']):
-                for j, k in enumerate(keys_json[0]['keys']):
-                    note_states.append(noteState[str(k)][0])
+                for j, k in enumerate(keys_json[0]['keys']): note_states.append(noteState[str(k)][0])
             for i, noteState in enumerate(genres_json[0]['Note Types']):
-                for j, k in enumerate(note_types):
-                    note_type_states.append(noteState[str(k)][0])
-        
-        # self.genresComboBox.clear()
-        # self.genresComboBox.addItems(genre_names)
+                for j, k in enumerate(note_types): note_type_states.append(noteState[str(k)][0])
         self.clearLayout(self.NoteGridLayout)
         self.clearLayout(self.NoteTypeGridLayout)
         self.UINotes()
-        
         if play: threading.Thread(target=self.playNote,args=(index,)).start()
     def playNote(self, i):
         note = AudioSegment.from_mp3(f"{piano_samples}{keys_json[0]['keys'][i]}.mp3")
@@ -398,39 +386,42 @@ class Ui(QMainWindow):
         self.btnDelete = QPushButton()
         self.btnDelete.setIcon(self.style().standardIcon(getattr(QStyle, 'SP_DialogDiscardButton')))
         self.btnDelete.setEnabled(False)
-        
+
         self.lblStatus = QLabel('Status: Generating...')
-        
-        self.name = QPushButton(str(total) + '. ')
-        self.name.setFlat(True)
-        self.name.clicked.connect(partial(self.btnOpenPath, compile_folder))
-        self.name.setIcon(self.style().standardIcon(getattr(QStyle, 'SP_DirOpenIcon')))
-        
+
+        self.btnName = QPushButton(str(total) + '. ')
+        self.btnName.setFlat(True)
+        self.btnName.clicked.connect(partial(self.btnOpenPath, compile_folder))
+        self.btnName.setIcon(self.style().standardIcon(getattr(QStyle, 'SP_DirOpenIcon')))
+
         self.btnPlay = QPushButton()
         self.btnPlay.setEnabled(False)
         self.btnPlay.setIcon(self.style().standardIcon(getattr(QStyle, 'SP_MediaPlay')))
-        
-        self.gridMusicProgressGridLayout.addWidget(self.name, total, 0)
+
+        self.gridMusicProgressGridLayout.addWidget(self.btnName, total, 0)
         self.gridMusicProgressGridLayout.addWidget(self.progressBar, total, 1)
         self.gridMusicProgressGridLayout.addWidget(self.lblStatus, total, 2)
         self.gridMusicProgressGridLayout.addWidget(self.btnPlay, total, 3)
         self.gridMusicProgressGridLayout.addWidget(self.btnDelete, total, 4)
-        
-        if self.genAlgorithms.currentText() == 'Random': threading.Thread(target=self.generate_song_random, args=(self.progressBar, self.name, self.btnPlay, self.btnDelete, self.lblStatus,)).start()
-    def btnOpenPath(self, path):    
-        wb.open(path)
+
+        if self.genAlgorithms.currentText() == 'Random': threading.Thread(target=self.generate_song_random, args=(self.progressBar, self.btnName, self.btnPlay, self.btnDelete, self.lblStatus,)).start()
+    def btnOpenPath(self, path):
+        if current_platform == 'Linux': wb.open(path)
+        elif current_platform == 'Mac':  wb.open(path)
+        elif current_platform == 'Windows':
+            FILEBROWSER_PATH = os.path.join(os.getenv('WINDIR'), 'explorer.exe')
+            path = os.path.normpath(path)
+            if os.path.isdir(path): subprocess.run([FILEBROWSER_PATH, path])
+            elif os.path.isfile(path): subprocess.run([FILEBROWSER_PATH, '/select,', os.path.normpath(path)])
     def btnDeleteFile(self, path, btnDelete, btnPlay, btnName, lblStatus):
         try:
             btnDelete.setEnabled(False)
             btnName.setEnabled(False)
             btnName.setText('Deleted')
             btnPlay.setEnabled(False)
-            if os.path.isfile(path) or os.path.islink(path):
-                os.remove(path)  # remove the file
-            elif os.path.isdir(path):
-                shutil.rmtree(path)  # remove dir and all contains
-            else:
-                raise ValueError("file {} is not a file or dir.".format(path))
+            if os.path.isfile(path) or os.path.islink(path):  os.remove(path)  # remove the file
+            elif os.path.isdir(path): shutil.rmtree(path)  # remove dir and all contains
+            else: raise ValueError("file {} is not a file or dir.".format(path))
         except Exception as e:
             print(e)
     def updateNotes(self):
@@ -442,11 +433,9 @@ class Ui(QMainWindow):
         with open(genres_file) as file:
             genres_json = json.load(file)
             for i, noteState in enumerate(genres_json[0]['Notes']):
-                for j, k in enumerate(keys_json[0]['keys']):
-                    note_states.append(noteState[str(k)][0])
+                for j, k in enumerate(keys_json[0]['keys']): note_states.append(noteState[str(k)][0])
             for i, noteState in enumerate(genres_json[0]['Note Types']):
-                for j, k in enumerate(note_types):
-                    note_type_states.append(noteState[str(k)][0])
+                for j, k in enumerate(note_types): note_type_states.append(noteState[str(k)][0])
         self.clearLayout(self.NoteGridLayout)
         self.clearLayout(self.NoteTypeGridLayout)
         self.UINotes()
@@ -468,64 +457,73 @@ class Ui(QMainWindow):
         order_of_notes = 0
         order_of_note_types = 0
         final_name = ''
-        # try:
-        with open(genres_file) as file:
-            genres_json = json.load(file)
-            for i, noteState in enumerate(genres_json[0]['Notes'][0]):
-                if note_states[i] == 'True': all_available_notes.append(keys_json[0]['keys'][i])
-            for i, note in enumerate(genres_json[0]['Note Types'][0]):
-                if note_type_states[i] == 'True': all_available_note_types.append(note_types[note])
-        while True:
-            if not len(all_available_notes) > 0:
-                print('no notes')
-                return
-            else:
-                randNote = random.randint(0, len(all_available_notes) - 1)
-                randNoteType = random.randint(0, len(all_available_note_types) - 1) # min = 0, max = 5
-                if first_note == '': first_note = randNote
-                if first_note_type == '': first_note = randNoteType
-                selected_note_type = all_available_note_types[randNoteType]
-                num += 1
-                order_of_notes += randNote
-                order_of_note_types += randNoteType
-                # min = 0, max = 60
-                note = AudioSegment.from_mp3(f"{piano_samples}{all_available_notes[randNote]}.mp3")
-                note_length = note.duration_seconds * 1000 #milliseconds
-                note = note[:note_length / selected_note_type]
-                note = note.fade_out(2000)
-                if final_song == '': final_song = note
-                else: final_song += note
-                progressBar.setValue(final_song.duration_seconds/seconds*100)
-                if final_song.duration_seconds >= seconds:
-                    final_name = (f'{str(first_note)}{str(num)}{str(order_of_notes)}{str(order_of_note_types)}{str(first_note_type)}.mp3')
-                    labelStatus.setText('Status: Finished!')
-                    buttonName.setText(buttonName.text() + final_name)
-                    buttonPlay.setEnabled(True)
-                    buttonDelete.setEnabled(True)
-                    buttonDelete.clicked.connect(partial(self.btnDeleteFile,compile_folder + final_name, buttonDelete, buttonPlay, buttonName, labelStatus))
-                    progressBar.setValue(100)
-                    # final_song = final_song[:seconds * 1000]
-                    final_song.fade_in(6000).fade_out(6000)
-                    final_song.export(f"{compile_folder}{final_name}", format="mp3")
-                    buttonPlay.clicked.connect(partial(self.playSong, final_name))
-                    break
-        # except Exception as e:
-        #     print(e)
+        try:
+            with open(genres_file) as file:
+                genres_json = json.load(file)
+                for i, noteState in enumerate(genres_json[0]['Notes'][0]):
+                    if note_states[i] == 'True': all_available_notes.append(keys_json[0]['keys'][i])
+                for i, note in enumerate(genres_json[0]['Note Types'][0]):
+                    if note_type_states[i] == 'True': all_available_note_types.append(note_types[note])
+            while True:
+                if not len(all_available_notes) > 0: return
+                else:
+                    randNote = random.randint(0, len(all_available_notes) - 1)
+                    randNoteType = random.randint(0, len(all_available_note_types) - 1) # min = 0, max = 5
+                    if first_note == '': first_note = randNote
+                    if first_note_type == '': first_note = randNoteType
+                    selected_note_type = all_available_note_types[randNoteType]
+                    num += 1
+                    order_of_notes += randNote
+                    order_of_note_types += randNoteType
+                    # min = 0, max = 60
+                    note = AudioSegment.from_mp3(f"{piano_samples}{all_available_notes[randNote]}.mp3")
+                    note_length = note.duration_seconds * 1000 #milliseconds
+                    note = note[:note_length / selected_note_type]
+                    note = note.fade_out(2000)
+                    if final_song == '': final_song = note
+                    else: final_song += note
+                    progressBar.setValue(final_song.duration_seconds/seconds*100)
+                    if final_song.duration_seconds >= seconds:
+                        final_name = (f'{str(first_note)}{str(num)}{str(order_of_notes)}{str(order_of_note_types)}{str(first_note_type)}.mp3')
+                        labelStatus.setText('Status: Finished!')
+                        buttonName.setText(buttonName.text() + final_name)
+                        buttonPlay.setEnabled(True)
+                        buttonDelete.setEnabled(True)
+                        buttonDelete.clicked.connect(partial(self.btnDeleteFile,compile_folder + final_name, buttonDelete, buttonPlay, buttonName, labelStatus))
+                        progressBar.setValue(100)
+                        # final_song = final_song[:seconds * 1000]
+                        final_song.fade_in(6000).fade_out(6000)
+                        final_song.export(f"{compile_folder}{final_name}", format="mp3")
+                        buttonPlay.clicked.connect(partial(self.playSong, final_name))
+                        break
+        except Exception as e:
+            print(e)
     def btnClearGrid(self):
         global total
         total = 0
         self.clearLayout(self.gridMusicProgress)
-def load_config_file():
-    theme.clear()
-    with open(config_file) as file:
-        config_json = json.load(file)
-        for info in config_json:
-            for themeNum in info['theme']: theme.append(themeNum)
-def exit_handler():
-    sys.exit()
+        load_config_file(theme)
+    def open_settings_window(self):
+        self.settingsUI = settingsUI()
+        self.settingsUI.show()
+
+class settingsUI(QWidget):
+    def __init__(self):
+        super().__init__()
+        uic.loadUi('Music_Generator/settings.ui', self)
+
+def load_config_file(*args):
+    for i, j in enumerate(args):
+        j.clear()
+        with open(config_file) as file:
+            config_json = json.load(file)
+            for info in config_json:
+                for themeNum in info['theme']: args[0].append(themeNum)
+        print(j)
+def exit_handler(): sys.exit()
 if __name__ == '__main__':
-    load_config_file()
+    load_config_file(theme)
     atexit.register(exit_handler)
     app = QApplication(sys.argv)
-    window = Ui()
+    window = mainwindowUI()
     app.exec_()
