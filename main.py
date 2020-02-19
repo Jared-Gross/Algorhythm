@@ -13,15 +13,16 @@ from functools import partial
 
 piano_samples = 'Piano Samples/'
 image_folder = 'Images/'
-
 compile_folder = 'Compile/'
-if not os.path.exists(compile_folder): os.mkdir(compile_folder)
-
 genres_folder = 'Genres/'
+
+
+if not os.path.exists(compile_folder): os.mkdir(compile_folder)
 all_genre_files = [f for f in glob.glob(genres_folder + "**/*.json", recursive=True)]
 genres_file = all_genre_files[0]
 
 keys_file = os.path.dirname(os.path.realpath(__file__)) + '/keys.json'
+config_file = os.path.dirname(os.path.realpath(__file__)) + '/config.json'
 
 note_types = {
     'Semibreve': 1,    #semibreve
@@ -31,6 +32,8 @@ note_types = {
     'Semiquaver': 16,    #semiquaver
     'Demisemiquaver': 32    #demisemiquaver
 }
+
+# NOTE JSON
 note_states = []
 genre_names = []
 note_type_states = []
@@ -44,8 +47,6 @@ with open(keys_file) as file:
     keys_json = json.load(file)
 with open(genres_file) as file:
     genres_json = json.load(file)
-    # for i, name in enumerate (genres_json['genres']):
-    #     genre_names.append(name['Name'][0])
     for i, noteState in enumerate(genres_json[0]['Notes']):
         for j, k in enumerate(keys_json[0]['keys']):
             note_states.append(noteState[str(k)][0])
@@ -53,11 +54,14 @@ with open(genres_file) as file:
         for j, k in enumerate(note_types):
             note_type_states.append(noteState[str(k)][0])
 
-# for x in range(50):
+# CONFIG JSON
+theme = []
+config_json = {}
 class Ui(QMainWindow):
     def __init__(self):
         super(Ui, self).__init__()
         uic.loadUi('Music_Generator/mainwindow.ui', self)
+        self.setStyleSheet(open("style.qss", "r").read())
         self.btnGenerate = self.findChild(QPushButton, 'btnGenerate_2')
         self.btnGenerate.clicked.connect(partial(self.btnGenerateClicked))
         
@@ -93,13 +97,13 @@ class Ui(QMainWindow):
             self.btnNote.clicked.connect(partial(self.btnNoteClick, j, i, self.btnNote, True))
             if '#' in j or 'b' in j:
                 self.btnNote.setToolTip(f'{j[0]} Sharp {j[2]}' if '#' in j else f'{j[0]} Flat {j[2]}')
-                if note_states[i] == 'True': self.btnNote.setStyleSheet("background-color: #4DFF33; color: black; border-radius: 3px; border: 1px solid black;")
-                else: self.btnNote.setStyleSheet("background-color: #FF3335; color: black; border-radius: 3px; border: 1px solid black;")
+                if note_states[i] == 'True': self.btnNote.setObjectName('blackOn') # self.btnNote.setStyleSheet("background-color: #4DFF33; color: black; border-radius: 3px; border: 1px solid black;")
+                else: self.btnNote.setObjectName('blackOff') #self.btnNote.setStyleSheet("background-color: #FF3335; color: black; border-radius: 3px; border: 1px solid black;")
                 self.btnNote.setFixedSize(28,64)
             else:
                 self.btnNote.setToolTip(f'{j}')
-                if note_states[i] == 'True': self.btnNote.setStyleSheet("background-color: #7FFF8E; color: black; border-radius: 3px; border: 1px solid black;")
-                else: self.btnNote.setStyleSheet("background-color: #FF7F7F; color: black; border-radius: 3px; border: 1px solid black;")
+                if note_states[i] == 'True': self.btnNote.setObjectName('whiteOn') #self.btnNote.setStyleSheet("background-color: #7FFF8E; color: black; border-radius: 3px; border: 1px solid black;")
+                else: self.btnNote.setObjectName('whiteOff') #self.btnNote.setStyleSheet("background-color: #FF7F7F; color: black; border-radius: 3px; border: 1px solid black;")
                 self.btnNote.setFixedSize(36,64)
             self.NoteGridLayout.addWidget(self.btnNote, i / colSize, i % colSize)
         for i, j in enumerate(note_types):
@@ -110,7 +114,7 @@ class Ui(QMainWindow):
             self.btnNoteType.setChecked(True if note_type_states[i] == 'True' else False)
             self.btnNoteType.setIcon(QtGui.QIcon(f'{image_folder}{j}.png'))
             self.btnNoteType.setIconSize(QtCore.QSize(32,32))
-            self.btnNoteType.setStyleSheet("background-color: #7FFF8E; color: black; border-radius: 3px; border: 1px solid black;" if note_type_states[i] == 'True' else "background-color: #FF7F7F; color: black; border-radius: 3px; border: 1px solid black;")
+            self.btnNoteType.setObjectName("whiteOn" if note_type_states[i] == 'True' else "whiteOff")
 
             self.btnNoteType.clicked.connect(partial(self.btnNoteClick, j, i, self.btnNoteType, False))
             self.NoteTypeGridLayout.setColumnStretch(0,3)
@@ -384,6 +388,7 @@ class Ui(QMainWindow):
         return
     def threadPlaySong(self, name):
         song = AudioSegment.from_mp3(f"{compile_folder}{name}")
+        print(song['duration_seconds'])
         play(song)
         return
     def btnGenerateClicked(self):
@@ -394,6 +399,8 @@ class Ui(QMainWindow):
         self.btnDelete.setIcon(self.style().standardIcon(getattr(QStyle, 'SP_DialogDiscardButton')))
         self.btnDelete.setEnabled(False)
         
+        self.lblStatus = QLabel('Status: Generating...')
+        
         self.name = QPushButton(str(total) + '. ')
         self.name.setFlat(True)
         self.name.clicked.connect(partial(self.btnOpenPath, compile_folder))
@@ -403,14 +410,29 @@ class Ui(QMainWindow):
         self.btnPlay.setEnabled(False)
         self.btnPlay.setIcon(self.style().standardIcon(getattr(QStyle, 'SP_MediaPlay')))
         
-        self.gridMusicProgressGridLayout.addWidget(self.progressBar, total, 1)
         self.gridMusicProgressGridLayout.addWidget(self.name, total, 0)
-        self.gridMusicProgressGridLayout.addWidget(self.btnPlay, total, 2)
-        self.gridMusicProgressGridLayout.addWidget(self.btnDelete, total, 3)
+        self.gridMusicProgressGridLayout.addWidget(self.progressBar, total, 1)
+        self.gridMusicProgressGridLayout.addWidget(self.lblStatus, total, 2)
+        self.gridMusicProgressGridLayout.addWidget(self.btnPlay, total, 3)
+        self.gridMusicProgressGridLayout.addWidget(self.btnDelete, total, 4)
         
-        if self.genAlgorithms.currentText() == 'Random': threading.Thread(target=self.generate_song_random, args=(self.progressBar, self.name, self.btnPlay, self.btnDelete,)).start()
+        if self.genAlgorithms.currentText() == 'Random': threading.Thread(target=self.generate_song_random, args=(self.progressBar, self.name, self.btnPlay, self.btnDelete, self.lblStatus,)).start()
     def btnOpenPath(self, path):    
         wb.open(path)
+    def btnDeleteFile(self, path, btnDelete, btnPlay, btnName, lblStatus):
+        try:
+            btnDelete.setEnabled(False)
+            btnName.setEnabled(False)
+            btnName.setText('Deleted')
+            btnPlay.setEnabled(False)
+            if os.path.isfile(path) or os.path.islink(path):
+                os.remove(path)  # remove the file
+            elif os.path.isdir(path):
+                shutil.rmtree(path)  # remove dir and all contains
+            else:
+                raise ValueError("file {} is not a file or dir.".format(path))
+        except Exception as e:
+            print(e)
     def updateNotes(self):
         global genres_json, genre_names, note_states, note_type_states, genres_file
         genre_names.clear()
@@ -435,7 +457,7 @@ class Ui(QMainWindow):
                 widget = item.widget()
                 if widget is not None: widget.deleteLater()
                 else: self.clearLayout(item.layout())
-    def generate_song_random(self, progressBar, lblName, buttonPlay, buttonDelete):
+    def generate_song_random(self, progressBar, buttonName, buttonPlay, buttonDelete, labelStatus):
         seconds = float(self.inputSongLength.text())
         final_song = ''
         all_available_notes = []
@@ -476,9 +498,11 @@ class Ui(QMainWindow):
                 progressBar.setValue(final_song.duration_seconds/seconds*100)
                 if final_song.duration_seconds >= seconds:
                     final_name = (f'{str(first_note)}{str(num)}{str(order_of_notes)}{str(order_of_note_types)}{str(first_note_type)}.mp3')
-                    lblName.setText(lblName.text() + final_name)
+                    labelStatus.setText('Status: Finished!')
+                    buttonName.setText(buttonName.text() + final_name)
                     buttonPlay.setEnabled(True)
                     buttonDelete.setEnabled(True)
+                    buttonDelete.clicked.connect(partial(self.btnDeleteFile,compile_folder + final_name, buttonDelete, buttonPlay, buttonName, labelStatus))
                     progressBar.setValue(100)
                     # final_song = final_song[:seconds * 1000]
                     final_song.fade_in(6000).fade_out(6000)
@@ -491,10 +515,16 @@ class Ui(QMainWindow):
         global total
         total = 0
         self.clearLayout(self.gridMusicProgress)
-
+def load_config_file():
+    theme.clear()
+    with open(config_file) as file:
+        config_json = json.load(file)
+        for info in config_json:
+            for themeNum in info['theme']: theme.append(themeNum)
 def exit_handler():
     sys.exit()
 if __name__ == '__main__':
+    load_config_file()
     atexit.register(exit_handler)
     app = QApplication(sys.argv)
     window = Ui()
