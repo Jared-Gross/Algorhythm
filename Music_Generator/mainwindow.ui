@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>636</width>
-    <height>542</height>
+    <width>820</width>
+    <height>686</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -53,7 +53,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_1">
        <property name="sizePolicy">
@@ -82,8 +82,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>906</width>
-             <height>195</height>
+             <width>778</width>
+             <height>265</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="gridLayout">
@@ -232,8 +232,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>438</width>
-               <height>400</height>
+               <width>576</width>
+               <height>544</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_10">
@@ -273,8 +273,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>142</width>
-                 <height>244</height>
+                 <width>188</width>
+                 <height>388</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="gridLayout_11">
@@ -288,7 +288,7 @@
             <item row="3" column="0">
              <widget class="QLabel" name="label_5">
               <property name="text">
-               <string>Genres</string>
+               <string>Note settings</string>
               </property>
              </widget>
             </item>
@@ -351,7 +351,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>636</width>
+     <width>820</width>
      <height>23</height>
     </rect>
    </property>
