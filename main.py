@@ -15,10 +15,16 @@ if sys.platform == "linux" or sys.platform == "linux2": current_platform = 'Linu
 elif sys.platform == "darwin": current_platform = 'Mac'
 elif sys.platform == "win32": current_platform = 'Windows'
 
-piano_samples = 'Piano Samples/'
-image_folder = 'Images/'
-compile_folder = 'Compile/'
-genres_folder = 'Genres/'
+if current_platform == 'Linux':
+    piano_samples = 'Piano Samples/'
+    image_folder = 'Images/'
+    compile_folder = 'Compile/'
+    genres_folder = 'Genres/'
+elif current_platform == 'Windows':
+    piano_samples = 'Piano Samples\\'
+    image_folder = 'Images\\'
+    compile_folder = 'Compile\\'
+    genres_folder = 'Genres\\'
 
 
 if not os.path.exists(compile_folder): os.mkdir(compile_folder)
@@ -367,20 +373,19 @@ class mainwindowUI(QMainWindow):
         self.clearLayout(self.NoteGridLayout)
         self.clearLayout(self.NoteTypeGridLayout)
         self.UINotes()
-        if play: threading.Thread(target=self.playNote,args=(index,)).start()
+        # if play: threading.Thread(target=self.playNote,args=(index,)).start()
+        if play: self.playNote(index)
     def playNote(self, i):
-        note = AudioSegment.from_mp3(f"{piano_samples}{keys_json[0]['keys'][i]}.mp3")
-        play(note)
-        return
-    def playSong(self, name):
-        threading.Thread(target=self.threadPlaySong, args=(name,)).start()
-        return
-    def threadPlaySong(self, name):
-        # print(name)
-        song = AudioSegment.from_mp3(f"{compile_folder}{name}")
-        # print(song['duration_seconds'])
-        play(song)
-        return
+        try:
+            note = AudioSegment.from_mp3(f"{piano_samples}{keys_json[0]['keys'][i]}.mp3")
+            play(note)
+            return
+        except PermissionError as e:
+            self.OpenErrorDialog('Permission Denied', e)
+        except FileNotFoundError as e:
+            self.OpenErrorDialog('File Not Found', e)
+    def OpenErrorDialog(self, title, text):
+        QMessageBox.critical(self, f'{title}', f"{text}", QMessageBox.Ok, QMessageBox.Ok)
     def btnGenerateClicked(self):
         global total
         total += 1
@@ -408,8 +413,7 @@ class mainwindowUI(QMainWindow):
 
         threading.Thread(target=self.generate_song, args=(self.genAlgorithms.currentText(), self.progressBar, self.btnName, self.btnPlay, self.btnDelete, self.lblStatus,)).start()
     def btnOpenPath(self, path):
-        if current_platform == 'Linux': wb.open(path)
-        elif current_platform == 'Mac':  wb.open(path)
+        if current_platform == 'Linux' or current_platform == 'Mac': wb.open(path)
         elif current_platform == 'Windows':
             FILEBROWSER_PATH = os.path.join(os.getenv('WINDIR'), 'explorer.exe')
             path = os.path.normpath(path)
@@ -419,7 +423,7 @@ class mainwindowUI(QMainWindow):
         try:
             btnDelete.setEnabled(False)
             btnName.setEnabled(False)
-            btnName.setText('Deleted')
+            lblStatus.setText('Status: Deleted')
             btnPlay.setEnabled(False)
             if os.path.isfile(path) or os.path.islink(path):  os.remove(path)  # remove the file
             elif os.path.isdir(path): shutil.rmtree(path)  # remove dir and all contains
