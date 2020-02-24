@@ -2,8 +2,8 @@ from pydub import AudioSegment
 from pydub.playback import play
 import os, json, sys, random, threading, glob, datetime, atexit, subprocess
 import webbrowser as wb
-from PyQt5.QtMultimediaWidgets import *
-from PyQt5.QtMultimedia import *
+from PyQt5.QtMultimediaWidgets import QVideoWidget
+from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -62,7 +62,7 @@ class mainwindowUI(QMainWindow):
     def __init__(self, parent = None):
         super(mainwindowUI, self).__init__(parent)
         uic.loadUi('Music_Generator/mainwindow.ui', self)
-        # self.setStyleSheet(open("style.qss", "r").read())
+        self.setStyleSheet(open("style.qss", "r").read())
         self.btnGenerate = self.findChild(QPushButton, 'btnGenerate_2')
         self.btnGenerate.clicked.connect(partial(self.btnGenerateClicked))
 
@@ -74,6 +74,7 @@ class mainwindowUI(QMainWindow):
         self.genAlgorithms = self.findChild(QComboBox, 'genAlgorithms_4')
         self.genAlgorithms.setToolTip('Diffrent algorithms of music generation.')
         self.genAlgorithms.addItem('Random')
+        self.genAlgorithms.addItem('Step')
 
         self.genresComboBox = self.findChild(QComboBox, 'genresComboBox')
         self.genresComboBox.addItems(genre_names)
@@ -375,8 +376,9 @@ class mainwindowUI(QMainWindow):
         threading.Thread(target=self.threadPlaySong, args=(name,)).start()
         return
     def threadPlaySong(self, name):
+        # print(name)
         song = AudioSegment.from_mp3(f"{compile_folder}{name}")
-        print(song['duration_seconds'])
+        # print(song['duration_seconds'])
         play(song)
         return
     def btnGenerateClicked(self):
@@ -404,7 +406,7 @@ class mainwindowUI(QMainWindow):
         self.gridMusicProgressGridLayout.addWidget(self.btnPlay, total, 3)
         self.gridMusicProgressGridLayout.addWidget(self.btnDelete, total, 4)
 
-        if self.genAlgorithms.currentText() == 'Random': threading.Thread(target=self.generate_song_random, args=(self.progressBar, self.btnName, self.btnPlay, self.btnDelete, self.lblStatus,)).start()
+        threading.Thread(target=self.generate_song, args=(self.genAlgorithms.currentText(), self.progressBar, self.btnName, self.btnPlay, self.btnDelete, self.lblStatus,)).start()
     def btnOpenPath(self, path):
         if current_platform == 'Linux': wb.open(path)
         elif current_platform == 'Mac':  wb.open(path)
@@ -446,7 +448,7 @@ class mainwindowUI(QMainWindow):
                 widget = item.widget()
                 if widget is not None: widget.deleteLater()
                 else: self.clearLayout(item.layout())
-    def generate_song_random(self, progressBar, buttonName, buttonPlay, buttonDelete, labelStatus):
+    def generate_song(self, algorithmName, progressBar, buttonName, buttonPlay, buttonDelete, labelStatus):
         seconds = float(self.inputSongLength.text())
         final_song = ''
         all_available_notes = []
@@ -467,37 +469,92 @@ class mainwindowUI(QMainWindow):
             while True:
                 if not len(all_available_notes) > 0: return
                 else:
-                    randNote = random.randint(0, len(all_available_notes) - 1)
-                    randNoteType = random.randint(0, len(all_available_note_types) - 1) # min = 0, max = 5
-                    if first_note == '': first_note = randNote
-                    if first_note_type == '': first_note = randNoteType
-                    selected_note_type = all_available_note_types[randNoteType]
-                    num += 1
-                    order_of_notes += randNote
-                    order_of_note_types += randNoteType
-                    # min = 0, max = 60
-                    note = AudioSegment.from_mp3(f"{piano_samples}{all_available_notes[randNote]}.mp3")
-                    note_length = note.duration_seconds * 1000 #milliseconds
-                    note = note[:note_length / selected_note_type]
-                    note = note.fade_out(2000)
-                    if final_song == '': final_song = note
-                    else: final_song += note
-                    progressBar.setValue(final_song.duration_seconds/seconds*100)
+                    if algorithmName == 'Random':
+                        randNote = random.randint(0, len(all_available_notes) - 1)
+                        randNoteType = random.randint(0, len(all_available_note_types) - 1) # min = 0, max = 5
+                        selected_note_type = all_available_note_types[randNoteType]
+                        num += 1
+                        # min = 0, max = 60
+                        note = AudioSegment.from_mp3(f"{piano_samples}{all_available_notes[randNote]}.mp3")
+                        note_length = note.duration_seconds * 1000 #milliseconds
+                        note = note[:note_length / selected_note_type]
+                        note = note.fade_out(2000)
+                        if final_song == '': final_song = note
+                        else: final_song += note
+                    elif algorithmName == 'Step':
+                        step_keys = []
+                        step_note_keys = []
+                        all_available_step_notes = []
+                        if not step_keys: step_keys, step_note_keys = self.getStepNumberList()
+                        for i, j in enumerate(step_keys):
+                            for o, k in enumerate(all_available_notes):
+                                if j == k: all_available_step_notes.append(j)
+                        # for i, j in enumerate(step_note_keys):
+                            # print(j)
+                        # for o, k in enumerate(all_available_note_types):
+                        #     print(k)
+                        for i, j in enumerate(all_available_step_notes):
+                            temp = step_note_keys[i]
+                            selected_note_type = all_available_note_types[temp]
+                            note = AudioSegment.from_mp3(f"{piano_samples}{j}.mp3")
+                            print(j)
+                            note_length = note.duration_seconds * 1000 #milliseconds
+                            try: note = note[:note_length / selected_note_type]
+                            except ZeroDivisionError: note = note[:note_length / selected_note_type + 1]
+                            note = note.fade_out(selected_note_type * 1000)
+                            if final_song == '': final_song = note
+                            else: final_song += note
+                            if i == len(all_available_step_notes): step_keys, step_note_keys = self.getStepNumberList()
+                    self.updateProgressBar(progressBar, final_song.duration_seconds/seconds*100)
                     if final_song.duration_seconds >= seconds:
-                        final_name = (f'{str(first_note)}{str(num)}{str(order_of_notes)}{str(order_of_note_types)}{str(first_note_type)}.mp3')
+                        final_name = (f'{str(algorithmName)} {str(self.genresComboBox.currentText())} {str(final_song.duration_seconds)}{str()}.mp3')
                         labelStatus.setText('Status: Finished!')
                         buttonName.setText(buttonName.text() + final_name)
                         buttonPlay.setEnabled(True)
                         buttonDelete.setEnabled(True)
                         buttonDelete.clicked.connect(partial(self.btnDeleteFile,compile_folder + final_name, buttonDelete, buttonPlay, buttonName, labelStatus))
-                        progressBar.setValue(100)
+                        # self.updateProgressBar(progressBar, 100)
                         # final_song = final_song[:seconds * 1000]
                         final_song.fade_in(6000).fade_out(6000)
                         final_song.export(f"{compile_folder}{final_name}", format="mp3")
-                        buttonPlay.clicked.connect(partial(self.playSong, final_name))
+                        buttonPlay.clicked.connect(partial(self.open_mediaplayer_window, final_name))
                         break
         except Exception as e:
             print(e)
+    @pyqtSlot()
+    def updateProgressBar(self, progressBar, value):
+        progressBar.setValue(value)
+    def getStepNumberList(self):
+        amount_of_numbers = random.randint(5, 15)
+        # NOTE TYPES
+        note_types_number = []
+        startNoteType = random.randint(2, 5) # Min = 0, Max = 5
+        endNoteType = random.randint(startNoteType, 5)
+        try: stepNoteType = (endNoteType - startNoteType)/(amount_of_numbers-1)
+        except ZeroDivisionError: stepNoteType = (endNoteType - startNoteType)/(amount_of_numbers)
+        # NOTES
+        numbers = []
+        step_number_notes = []
+        start = random.randint(0, 60)
+        end = random.randint(start, 60)
+        try: step = (end - start)/(amount_of_numbers-1)
+        except ZeroDivisionError: step = (end - start)/(amount_of_numbers)
+        for i in range(amount_of_numbers):
+            i = i + 1# In this case we want to start at 1, to simplify things.
+            if i == 1: 
+                numbers.append(int(start))# first number
+                note_types_number.append(int(startNoteType))
+            if i == 2: 
+                numbers.append(int(start+step))# second number
+                note_types_number.append(int(startNoteType + stepNoteType))
+            if i >= 3 and i < amount_of_numbers: 
+                numbers.append(int(start + (i - 1) * step))# everything in bewtween
+                note_types_number.append(int(startNoteType + (i - 1) * stepNoteType))# everything in bewtween
+            if i == amount_of_numbers: 
+                numbers.append(int(start + (amount_of_numbers-1) * step))# end
+                note_types_number.append(int(startNoteType + (amount_of_numbers-1) * stepNoteType))# end
+        for i, j in enumerate(numbers): step_number_notes.append(keys_json[0]['keys'][j])
+        return step_number_notes, note_types_number
     def btnClearGrid(self):
         global total
         total = 0
@@ -506,12 +563,137 @@ class mainwindowUI(QMainWindow):
     def open_settings_window(self):
         self.settingsUI = settingsUI()
         self.settingsUI.show()
+    def open_mediaplayer_window(self, name):
+        self.VideoWindow = VideoWindow(name)
+        self.VideoWindow.setFixedSize(300,100)
+        self.VideoWindow.show()
 
 class settingsUI(QWidget):
     def __init__(self):
         super().__init__()
         uic.loadUi('Music_Generator/settings.ui', self)
 
+class VideoWindow(QMainWindow):
+    def __init__(self, name):
+        super(VideoWindow, self).__init__()
+        self.audioName = name
+        self.minute = 0
+        self.second = 0
+        self.durationSecond = 0
+        self.durationMinute = 0
+        self.setWindowTitle(name) 
+        self.mediaPlayer = QMediaPlayer(None, QMediaPlayer.VideoSurface)
+
+        videoWidget = QVideoWidget()
+        self.playButton = QPushButton()
+        self.playButton.setEnabled(False)
+        self.playButton.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
+        self.playButton.clicked.connect(self.play)
+
+        self.positionSlider = QSlider(Qt.Horizontal)
+        self.positionSlider.setRange(0, 0)
+        self.positionSlider.sliderMoved.connect(self.setPosition)
+        
+        self.lblTimeStart = QLabel()
+        self.lblTimeEnd = QLabel()
+
+        self.errorLabel = QLabel()
+        self.errorLabel.setSizePolicy(QSizePolicy.Preferred,
+                QSizePolicy.Maximum)
+
+        # # Create new action
+        openAction = QAction(QIcon('open.png'), '&Open', self)        
+        openAction.setShortcut('Ctrl+O')
+        openAction.setStatusTip('Open movie')
+        openAction.triggered.connect(partial(self.openFile, '', True))
+        
+        # Create exit action
+        exitAction = QAction(QIcon('exit.png'), '&Exit', self)        
+        exitAction.setShortcut('Ctrl+Q')
+        exitAction.setStatusTip('Exit application')
+        exitAction.triggered.connect(self.exitCall)
+
+        # Create menu bar and add action
+        menuBar = self.menuBar()
+        fileMenu = menuBar.addMenu('&File')
+        #fileMenu.addAction(newAction)
+        fileMenu.addAction(openAction)
+        fileMenu.addAction(exitAction)
+
+        # Create a widget for window contents
+        wid = QWidget(self)
+        self.setCentralWidget(wid)
+
+        # Create layouts to place inside widget
+        controlLayout = QHBoxLayout()
+        controlLayout.setContentsMargins(0, 0, 0, 0)
+        controlLayout.addWidget(self.playButton)
+        controlLayout.addWidget(self.lblTimeStart)
+        controlLayout.addWidget(self.positionSlider)
+        controlLayout.addWidget(self.lblTimeEnd)
+
+        layout = QVBoxLayout()
+        # layout.addWidget(videoWidget)
+        layout.addLayout(controlLayout)
+        # layout.addWidget(self.errorLabel)
+
+        # Set widget to contain window contents
+        wid.setLayout(layout)
+
+        self.mediaPlayer.setVideoOutput(videoWidget)
+        self.mediaPlayer.stateChanged.connect(self.mediaStateChanged)
+        self.mediaPlayer.positionChanged.connect(self.positionChanged)
+        self.mediaPlayer.durationChanged.connect(self.durationChanged)
+        self.mediaPlayer.error.connect(self.handleError)
+        file_path = os.path.dirname(os.path.abspath(__file__))
+        self.openFile(file_path + '/' + compile_folder + self.audioName, False)
+
+    def openFile(self, fileName, openFileDialog):
+        if openFileDialog:
+            fileName, _ = QFileDialog.getOpenFileName(self, "Open Audio",
+                    os.path.dirname(os.path.abspath(__file__)) + '/' + compile_folder, "Media (*.webm *.mp4 *.ts *.avi *.mpeg *.mpg *.mkv *.VOB *.m4v *.3gp *.mp3 *.m4a *.wav *.ogg *.flac *.m3u *.m3u8)")
+            if fileName.endswith('.mp4'):
+                reader = imageio.get_reader(fileName)
+                fps = reader.get_meta_data()['fps']
+                fileName = fileName.replace('.mp4', '.avi')
+                writer = imageio.get_writer(fileName, fps=fps)
+                for im in reader: writer.append_data(im[:, :, :])
+                writer.close()
+        if fileName != '':
+            self.mediaPlayer.setMedia(QMediaContent(QUrl.fromLocalFile(fileName)))
+            self.playButton.setEnabled(True)
+        self.play()
+
+    def exitCall(self):
+        sys.exit(app.exec_())
+
+    def play(self):
+        if self.mediaPlayer.state() == QMediaPlayer.PlayingState: self.mediaPlayer.pause()
+        else: self.mediaPlayer.play()
+
+    def mediaStateChanged(self, state):
+        if self.mediaPlayer.state() == QMediaPlayer.PlayingState: self.playButton.setIcon(self.style().standardIcon(QStyle.SP_MediaPause))
+        else: self.playButton.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
+
+    def positionChanged(self, position):
+        self.positionSlider.setValue(position)
+        self.second = int(position/1000%60)
+        self.minute = int(position/1000/60)
+        self.lblTimeStart.setText("{:02d}:{:02d}".format(self.minute, self.second))
+        self.lblTimeEnd.setText("{:02d}:{:02d}".format(self.durationMinute, self.durationSecond))
+        # self.lblTime.setText(str(self.minute) + ':' + str(self.second) + '/' + str(self.durationMinute) + ':' + str(self.durationSecond))
+        
+    def durationChanged(self, duration):
+        self.positionSlider.setRange(0, duration)
+        self.durationMinute = int(duration/1000 / 60)
+        self.durationSecond = int(duration/1000%60)
+
+    def setPosition(self, position):
+        self.mediaPlayer.setPosition(position)
+
+    def handleError(self):
+        self.playButton.setEnabled(False)
+        self.errorLabel.setText("Error: " + self.mediaPlayer.errorString())
 def load_config_file(*args):
     for i, j in enumerate(args):
         j.clear()
