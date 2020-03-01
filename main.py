@@ -62,14 +62,52 @@ with open(genres_file) as file:
         for j, k in enumerate(note_types): note_type_states.append(noteState[str(k)][0])
 
 # CONFIG JSON
-theme = []
+DefaultMode = []
+DarkMode = []
+LightMode = []
+CSSOn = []
+originalPalette = None
 name = []
-config_json = {}
+config_json = []
 class mainwindowUI(QMainWindow):
     def __init__(self, parent = None):
         super(mainwindowUI, self).__init__(parent)
         uic.loadUi('Music_Generator/mainwindow.ui', self)
-        self.setStyleSheet(open("style.qss", "r").read())
+        QApplication.setPalette(QApplication.palette())
+        global originalPalette
+        if originalPalette == None: originalPalette = QApplication.palette()
+        if DefaultMode[0] == 'True': QApplication.setPalette(originalPalette)
+        if LightMode[0] == 'True': 
+            app.setStyle("Fusion")
+            app.setPalette(QApplication.style().standardPalette())
+            palette = QPalette()
+            gradient = QLinearGradient(0, 0, 0, 400)
+            gradient.setColorAt(0.0, QColor(240, 240, 240))
+            gradient.setColorAt(1.0, QColor(215, 215, 215))
+            palette.setColor(QPalette.ButtonText, Qt.black)
+            palette.setBrush(QPalette.Window, QBrush(gradient))
+            app.setPalette(palette)
+        if DarkMode[0] == 'True': 
+            app.setStyle("Fusion")
+            palette = QPalette()
+            gradient = QLinearGradient(0, 0, 0, 400)
+            gradient.setColorAt(0.0, QColor(40, 40, 40))
+            gradient.setColorAt(1.0, QColor(30, 30, 30))
+            palette.setBrush(QPalette.Window, QBrush(gradient))
+            palette.setColor(QPalette.WindowText, Qt.white)
+            palette.setColor(QPalette.Base, QColor(25, 25, 25))
+            palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
+            palette.setColor(QPalette.ToolTipBase, Qt.white)
+            palette.setColor(QPalette.ToolTipText, Qt.white)
+            palette.setColor(QPalette.Text, Qt.white)
+            palette.setColor(QPalette.Button, QColor(30, 30, 30))
+            palette.setColor(QPalette.ButtonText, Qt.white)
+            palette.setColor(QPalette.BrightText, Qt.red)
+            palette.setColor(QPalette.Link, QColor(42, 130, 218))
+            palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
+            palette.setColor(QPalette.HighlightedText, Qt.black)
+            app.setPalette(palette)
+        if CSSOn[0] == 'True': self.setStyleSheet(open("style.qss", "r").read())
         self.btnGenerate = self.findChild(QPushButton, 'btnGenerate_2')
         self.btnGenerate.clicked.connect(partial(self.btnGenerateClicked))
 
@@ -84,7 +122,7 @@ class mainwindowUI(QMainWindow):
         self.genAlgorithms.addItem('Step')
 
         self.genresComboBox = self.findChild(QComboBox, 'genresComboBox')
-        self.genresComboBox.addItems(genre_names)
+        self.refreshNoteSettingComboBox()
         self.genresComboBox.currentIndexChanged.connect(self.updateNotes)
 
         self.NoteGridLayout = self.findChild(QGridLayout,'NoteGridLayout')
@@ -441,7 +479,54 @@ class mainwindowUI(QMainWindow):
             else: raise ValueError("file {} is not a file or dir.".format(path))
         except Exception as e:
             print(e)
+    def createGenere(self):
+        text, okPressed = QInputDialog.getText(self, "Name","Enter Genre name:", QLineEdit.Normal, "")
+        if okPressed and text != '':
+            if not text.endswith('.json'): file_name = genres_folder + text + '.json'
+            f = open(file_name, 'w+')  # open file in write mode
+            textToWrite = '[{"Name":["' + text + '"],"Notes":[{"C1":["True"],"C#1":["True"],"D1":["True"],"Eb1":["True"],"E1":["True"],"F1":["True"],"F#1":["True"],"G1":["True"],"Ab1":["True"],"A1":["True"],"Bb1":["True"],"B1":["True"],"C2":["True"],"C#2":["True"],"D2":["True"],"Eb2":["True"],"E2":["True"],"F2":["True"],"F#2":["True"],"G2":["True"],"Ab2":["True"],"A2":["True"],"Bb2":["True"],"B2":["True"],"C3":["True"],"C#3":["True"],"D3":["True"],"Eb3":["True"],"E3":["True"],"F3":["True"],"F#3":["True"],"G3":["True"],"Ab3":["True"],"A3":["True"],"Bb3":["True"],"B3":["True"],"C4":["True"],"C#4":["True"],"D4":["True"],"Eb4":["True"],"E4":["True"],"F4":["True"],"F#4":["True"],"G4":["True"],"Ab4":["True"],"A4":["True"],"Bb4":["True"],"B4":["True"],"C5":["True"],"C#5":["True"],"D5":["True"],"Eb5":["True"],"E5":["True"],"F5":["True"],"F#5":["True"],"G5":["True"],"Ab5":["True"],"A5":["True"],"Bb5":["True"],"B5":["True"],"C6":["True"]}],"Note Types":[{"Semibreve":["True"],"Minim":["True"],"Crochet":["True"],"Quaver":["True"],"Semiquaver":["True"],"Demisemiquaver":["True"]}]}]'
+            f.write(textToWrite)
+            f.close()
+    def deleteGenere(self):
+        text, okPressed = QInputDialog.getText(self, "Name","Enter Genre name:", QLineEdit.Normal, "")
+        print(text)
+        if okPressed and text != '':
+            for i in all_genre_files:
+                i = i.replace(genres_folder, '')
+                i = i.replace('.json', '')
+                print(i)
+                if text == i:
+                    if not text.endswith('.json'): os.remove(genres_folder + text + '.json')
+                    else: os.remove(genres_folder + text)
+                    return
+            button = QMessageBox.critical( self, 'File not found', f"Can't find {text}\nPlease try again.", QMessageBox.Retry | QMessageBox.Cancel, QMessageBox.Retry)
+            if button == QMessageBox.Retry:
+                self.deleteGenere()
+                return
+            else: return
+    def refreshNoteSettingComboBox(self):
+        global genres_json, genre_names, note_states, note_type_states, genres_file, all_genre_files
+        self.genresComboBox.clear()
+        genre_names.clear()
+        all_genre_files = [f for f in glob.glob(genres_folder + "**/*.json", recursive=True)]
+        genres_file = all_genre_files[0]
+        
+        for i in all_genre_files:
+            i = i.replace(genres_folder, '')
+            i = i.replace('.json', '')
+            genre_names.append(i)
+        self.genresComboBox.addItems(genre_names)
+        self.genresComboBox.addItem('Create')
+        self.genresComboBox.addItem('Delete')
     def updateNotes(self):
+        if self.genresComboBox.currentText() == 'Create':
+            self.createGenere()
+            self.refreshNoteSettingComboBox()
+            return
+        if self.genresComboBox.currentText() == 'Delete':
+            self.deleteGenere()
+            self.refreshNoteSettingComboBox()
+            return
         global genres_json, genre_names, note_states, note_type_states, genres_file
         genre_names.clear()
         note_states.clear()
@@ -580,17 +665,81 @@ class mainwindowUI(QMainWindow):
     def open_settings_window(self):
         self.settingsUI = settingsUI()
         self.settingsUI.show()
+        self.close()
     def open_mediaplayer_window(self, name):
         file_path = os.path.dirname(os.path.abspath(__file__))
-        self.Player = Player(file_path + '/' + compile_folder + name)
-        self.Player.setStyleSheet(open("style.qss", "r").read())
+        self.Player = Player([file_path + '/' + compile_folder + name])
+        if CSSOn[0] == 'True': self.Player.setStyleSheet(open("style.qss", "r").read())
+        self.Player.setWindowTitle('Media Player')
         self.Player.show()
 class settingsUI(QWidget):
     def __init__(self):
         super().__init__()
         uic.loadUi('Music_Generator/settings.ui', self)
+        self.Default = self.findChild(QRadioButton, 'radDefault')
+        self.Default.toggled.connect(lambda:self.RadClicked(self.Default))
+        self.Dark = self.findChild(QRadioButton, 'radDark')
+        self.Dark.toggled.connect(lambda:self.RadClicked(self.Dark))
+        self.Light = self.findChild(QRadioButton, 'radLight')
+        self.Light.toggled.connect(lambda:self.RadClicked(self.Light))
+        self.CSS = self.findChild(QCheckBox, 'customeCSS')
+        self.CSS.setChecked(True if CSSOn[0] == 'True' else False)
+        self.CSS.toggled.connect(lambda:self.RadClicked(self.CSS))
+
+        self.btnApply = self.findChild(QPushButton, 'btnApply')
+        self.btnApply.clicked.connect(self.close)
+        
+        self.Default.setChecked(True if DefaultMode[0] == 'True' else False)
+        self.Dark.setChecked(True if DarkMode[0] == 'True' else False)
+        self.Light.setChecked(True if LightMode[0] == 'True' else False)
+    def RadClicked(self, state):
+        config_json.pop(0)
+        config_json.append(
+            {
+                "Default": [str(self.Default.isChecked())],
+                "Dark": [str(self.Dark.isChecked())],
+                "Light": [str(self.Light.isChecked())],
+                "CSS": [str(self.CSS.isChecked())]
+            })
+        with open(config_file, mode='w+', encoding='utf-8') as file: json.dump(config_json, file, ensure_ascii=True, indent=4)
+        load_config_file(DefaultMode, DarkMode, LightMode, CSSOn)
+        if CSSOn[0] == 'True': self.setStyleSheet(open("style.qss", "r").read())
+        if DefaultMode[0] == 'True': QApplication.setPalette(originalPalette)
+        if LightMode[0] == 'True': 
+            app.setStyle("Fusion")
+            app.setPalette(QApplication.style().standardPalette())
+            palette = QPalette()
+            gradient = QLinearGradient(0, 0, 0, 400)
+            gradient.setColorAt(0.0, QColor(240, 240, 240))
+            gradient.setColorAt(1.0, QColor(215, 215, 215))
+            palette.setColor(QPalette.ButtonText, Qt.black)
+            palette.setBrush(QPalette.Window, QBrush(gradient))
+            app.setPalette(palette)
+        if DarkMode[0] == 'True': 
+            app.setStyle("Fusion")
+            palette = QPalette()
+            gradient = QLinearGradient(0, 0, 0, 400)
+            gradient.setColorAt(0.0, QColor(40, 40, 40))
+            gradient.setColorAt(1.0, QColor(30, 30, 30))
+            palette.setBrush(QPalette.Window, QBrush(gradient))
+            palette.setColor(QPalette.WindowText, Qt.white)
+            palette.setColor(QPalette.Base, QColor(25, 25, 25))
+            palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
+            palette.setColor(QPalette.ToolTipBase, Qt.white)
+            palette.setColor(QPalette.ToolTipText, Qt.white)
+            palette.setColor(QPalette.Text, Qt.white)
+            palette.setColor(QPalette.Button, QColor(30, 30, 30))
+            palette.setColor(QPalette.ButtonText, Qt.white)
+            palette.setColor(QPalette.BrightText, Qt.red)
+            palette.setColor(QPalette.Link, QColor(42, 130, 218))
+            palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
+            palette.setColor(QPalette.HighlightedText, Qt.black)
+            app.setPalette(palette)
+    def closeEvent(self, event):
+        self.mainMenu = mainwindowUI()
+        self.mainMenu.show()
+        self.close()
 class PlaylistModel(QAbstractItemModel):
-     
     Title, ColumnCount = range(2)
  
     def __init__(self, parent=None):
@@ -662,7 +811,6 @@ class PlaylistModel(QAbstractItemModel):
     def changeItems(self, start, end):
         self.dataChanged.emit(self.index(start, 0),
                 self.index(end, self.ColumnCount))
-
 class PlayerControls(QWidget):
     play = pyqtSignal()
     pause = pyqtSignal()
@@ -735,7 +883,6 @@ class PlayerControls(QWidget):
 
     def muteClicked(self):
         self.changeMuting.emit(not self.playerMuted)
-
 class Player(QWidget):
     def __init__(self, playlist, parent=None):
         super(Player, self).__init__(parent)
@@ -744,25 +891,25 @@ class Player(QWidget):
         self.duration = 0
 
         self.player = QMediaPlayer()
-        # self.playlist = QMediaPlaylist()
-        # self.player.setPlaylist(self.playlist)
+        self.playlist = QMediaPlaylist()
+        self.player.setPlaylist(self.playlist)
 
         self.player.durationChanged.connect(self.durationChanged)
         self.player.positionChanged.connect(self.positionChanged)
         self.player.metaDataChanged.connect(self.metaDataChanged)
-        # self.playlist.currentIndexChanged.connect(self.playlistPositionChanged)
+        self.playlist.currentIndexChanged.connect(self.playlistPositionChanged)
         self.player.mediaStatusChanged.connect(self.statusChanged)
         self.player.bufferStatusChanged.connect(self.bufferingProgress)
         self.player.error.connect(self.displayErrorMessage)
 
-        # self.playlistModel = PlaylistModel()
-        # self.playlistModel.setPlaylist(self.playlist)
+        self.playlistModel = PlaylistModel()
+        self.playlistModel.setPlaylist(self.playlist)
  
-        # self.playlistView = QListView()
-        # self.playlistView.setModel(self.playlistModel)
-        # self.playlistView.setCurrentIndex(self.playlistModel.index(self.playlist.currentIndex(), 0))
+        self.playlistView = QListView()
+        self.playlistView.setModel(self.playlistModel)
+        self.playlistView.setCurrentIndex(self.playlistModel.index(self.playlist.currentIndex(), 0))
  
-        # self.playlistView.activated.connect(self.jump)
+        self.playlistView.activated.connect(self.jump)
  
         self.slider = QSlider(Qt.Horizontal)
         self.slider.setRange(0, self.player.duration() / 1000)
@@ -790,14 +937,18 @@ class Player(QWidget):
         self.fullScreenButton = QPushButton("FullScreen")
         self.fullScreenButton.setCheckable(True)
  
+        displayLayout = QHBoxLayout()
+        displayLayout.addWidget(self.playlistView)
+ 
         controlLayout = QHBoxLayout()
         controlLayout.setContentsMargins(0, 0, 0, 0)
-        controlLayout.addWidget(openButton)
+        # controlLayout.addWidget(openButton)
         controlLayout.addStretch(1)
         controlLayout.addWidget(controls)
         controlLayout.addStretch(1)
  
         layout = QVBoxLayout()
+        layout.addLayout(displayLayout)
         hLayout = QHBoxLayout()
         hLayout.addWidget(self.slider)
         hLayout.addWidget(self.labelDuration)
@@ -817,14 +968,30 @@ class Player(QWidget):
  
         self.metaDataChanged()
         self.addToPlaylist(playlist)
- 
+
+        file_paths = []
+        for folder, subs, files in os.walk(compile_folder):
+            for filename in files: 
+                if filename.endswith('.mp3'): file_paths.append(os.path.abspath(os.path.join(folder, filename)))
+        self.addToPlaylist(file_paths)
     def open(self):
-        fileNames, _ = QFileDialog.getOpenFileName(self, "Open Files")
+        fileNames, _ = QFileDialog.getOpenFileNames(self, "Open Files")
         self.addToPlaylist(fileNames)
  
     def addToPlaylist(self, fileName):
-        url = QUrl(fileName)
-        # if url.isValid(): self.playlist.addMedia(QMediaContent(url))
+        for name in fileName:
+            fileInfo = QFileInfo(name)
+            if fileInfo.exists():
+                url = QUrl.fromLocalFile(fileInfo.absoluteFilePath())
+                if fileInfo.suffix().lower() == 'm3u':
+                    self.playlist.load(url)
+                else:
+                    self.playlist.addMedia(QMediaContent(url))
+            else:
+                url = QUrl(name)
+                if url.isValid():
+                    self.playlist.addMedia(QMediaContent(url))
+            # print(url)
         self.player.play()
     def durationChanged(self, duration):
         duration /= 1000
@@ -840,13 +1007,13 @@ class Player(QWidget):
         if self.player.isMetaDataAvailable(): self.setTrackInfo("%s" % (self.player.metaData(QMediaMetaData.Title)))
         self.setWindowTitle(self.player.metaData(QMediaMetaData.Title))
 
-    # def jump(self, index):
-    #     if index.isValid():
-    #         self.playlist.setCurrentIndex(index.row())
-    #         self.player.play()
+    def jump(self, index):
+        if index.isValid():
+            self.playlist.setCurrentIndex(index.row())
+            self.player.play()
 
-    # def playlistPositionChanged(self, position):
-    #     self.playlistView.setCurrentIndex(self.playlistModel.index(position, 0))
+    def playlistPositionChanged(self, position):
+        self.playlistView.setCurrentIndex(self.playlistModel.index(position, 0))
 
     def seek(self, seconds):
         self.player.setPosition(seconds * 1000)
@@ -871,11 +1038,13 @@ class Player(QWidget):
 
         if self.statusInfo != "": self.setWindowTitle("%s | %s" % (self.trackInfo, self.statusInfo))
         else: self.setWindowTitle(self.trackInfo)
+        self.setWindowTitle('Media Player')
 
     def setStatusInfo(self, info):
         self.statusInfo = info
         if self.statusInfo != "": self.setWindowTitle("%s | %s" % (self.trackInfo, self.statusInfo))
         else: self.setWindowTitle(self.trackInfo)
+        self.setWindowTitle('Media Player')
 
     def displayErrorMessage(self):
         self.setStatusInfo(self.player.errorString())
@@ -891,17 +1060,20 @@ class Player(QWidget):
         else: tStr = ""
         self.labelDuration.setText(tStr)
 
+        self.setWindowTitle('Media Player')
 def load_config_file(*args):
+    global config_json
     for i, j in enumerate(args):
         j.clear()
         with open(config_file) as file:
             config_json = json.load(file)
-            for info in config_json:
-                for themeNum in info['theme']: args[0].append(themeNum)
-        print(j)
+            for d in config_json[0]['Default']: args[0].append(d)
+            for da in config_json[0]['Dark']: args[1].append(da)
+            for l in config_json[0]['Light']: args[2].append(l)
+            for c in config_json[0]['CSS']: args[3].append(c)
 def exit_handler(): sys.exit()
 if __name__ == '__main__':
-    load_config_file(theme)
+    load_config_file(DefaultMode, DarkMode, LightMode, CSSOn)
     atexit.register(exit_handler)
     app = QApplication(sys.argv)
     window = mainwindowUI()
