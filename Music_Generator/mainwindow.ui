@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>573</width>
-    <height>472</height>
+    <width>666</width>
+    <height>530</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -35,6 +35,9 @@
   </property>
   <property name="windowTitle">
    <string>Music Generator</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
   </property>
   <widget class="QWidget" name="centralWidget">
    <property name="sizePolicy">
@@ -82,8 +85,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>529</width>
-             <height>150</height>
+             <width>624</width>
+             <height>187</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="gridLayout">
@@ -232,8 +235,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>390</width>
-               <height>346</height>
+               <width>461</width>
+               <height>388</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_10">
@@ -273,8 +276,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>125</width>
-                 <height>215</height>
+                 <width>149</width>
+                 <height>230</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="gridLayout_11">
@@ -351,8 +354,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>573</width>
-     <height>21</height>
+     <width>666</width>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menutest">
@@ -361,6 +364,7 @@
     </property>
     <addaction name="actionExport"/>
     <addaction name="action_Import"/>
+    <addaction name="actionOpen_Media_Player"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -369,7 +373,7 @@
    </widget>
    <widget class="QMenu" name="menu_View">
     <property name="title">
-     <string>&amp;Settings</string>
+     <string>Setti&amp;ngs</string>
     </property>
     <addaction name="actionPrefrences"/>
    </widget>
@@ -393,7 +397,12 @@
   </action>
   <action name="actionPrefrences">
    <property name="text">
-    <string>Prefrences</string>
+    <string>&amp;Prefrences</string>
+   </property>
+  </action>
+  <action name="actionOpen_Media_Player">
+   <property name="text">
+    <string>&amp;Open Media Player</string>
    </property>
   </action>
  </widget>
