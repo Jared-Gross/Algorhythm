@@ -14,9 +14,10 @@
 - [x] Make loading `.json` file system.
 - [x] Make writing `.json` file system.
 - [x] Adding custom genres.
-  - [ ] Create genres
+  - [x] Create genres
   - [x] Editing genres.
-  - [ ] Deleting genres.
+  - [x] Deleting genres.
+- [ ] Make more algorithems.
 ## Bugs
 - Audio clipping with `demisemiquaver` & `semiquaver` note.
   - Possible needs a longer fade.
