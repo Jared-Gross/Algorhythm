@@ -22,41 +22,59 @@ QPushButton {
    height: 25px;
 } */
 QPushButton#whiteOn {
-    background-color: rgb(127, 255, 127); 
+    background-color: QLinearGradient( x1: 0, y1: 0,
+                             x2: 0, y2: 1, 
+                            stop: 0 rgb(87, 225, 87),
+                            stop: 1 rgb(127, 255, 127));
     color: black; 
     border-radius: 3px; 
     border: 1px solid black;
 }
 
 QPushButton#whiteOn:hover {
-    background-color: rgb(107, 255, 107); 
+    background-color: QLinearGradient( x1: 0, y1: 0,
+                             x2: 0, y2: 1, 
+                            stop: 0 rgb(67, 225, 67),
+                            stop: 1 rgb(107, 255, 107));
     color: black; 
     border-radius: 3px; 
     border: 1px solid black;
 }
 
 QPushButton#whiteOn:pressed {
-    background-color: rgb(87, 255, 87); 
+    background-color: QLinearGradient( x1: 0, y1: 0,
+                             x2: 0, y2: 1, 
+                            stop: 0 rgb(47, 225, 47),
+                            stop: 1 rgb(87, 255, 87));
     color: black; 
     border-radius: 3px; 
     border: 1px solid black;
 }
 QPushButton#whiteOff {
-    background-color: rgb(255, 127, 127); 
+    background-color: QLinearGradient( x1: 0, y1: 0,
+                             x2: 0, y2: 1, 
+                            stop: 0 rgb(225, 87, 87),
+                            stop: 1 rgb(255, 127, 127));
     color: black; 
     border-radius: 3px; 
     border: 1px solid black;
 }
 
 QPushButton#whiteOff:hover {
-    background-color: rgb(255, 107, 107); 
+    background-color: QLinearGradient( x1: 0, y1: 0,
+                             x2: 0, y2: 1, 
+                            stop: 0 rgb(225, 67, 67),
+                            stop: 1 rgb(255, 107, 107));
     color: black; 
     border-radius: 3px; 
     border: 1px solid black;
 }
 
 QPushButton#whiteOff:pressed {
-    background-color: rgb(255, 87, 87); 
+    background-color: QLinearGradient( x1: 0, y1: 0,
+                             x2: 0, y2: 1, 
+                            stop: 0 rgb(225, 47, 47),
+                            stop: 1 rgb(255, 87, 87));
     color: black; 
     border-radius: 3px; 
     border: 1px solid black; 
@@ -65,41 +83,59 @@ QPushButton#whiteOff:pressed {
 
 
 QPushButton#blackOn {
-    background-color: rgb(50, 255, 50); 
+    background-color: QLinearGradient( x1: 0, y1: 0,
+                             x2: 0, y2: 1, 
+                            stop: 0 rgb(40, 225, 40),
+                            stop: 1 rgb(80, 255, 80));
     color: black; 
     border-radius: 3px; 
     border: 1px solid black;
 }
-
 QPushButton#blackOn:hover {
-    background-color: rgb(30, 255, 30); 
+    background-color: QLinearGradient( x1: 0, y1: 0,
+                             x2: 0, y2: 1, 
+                            stop: 0 rgb(20, 225, 20),
+                            stop: 1 rgb(40, 255, 40));
     color: black; 
     border-radius: 3px; 
     border: 1px solid black;
 }
 
 QPushButton#blackOn:pressed {
-    background-color: rgb(10, 255, 10); 
+    background-color: QLinearGradient( x1: 0, y1: 0,
+                             x2: 0, y2: 1, 
+                            stop: 0 rgb(0, 225, 0),
+                            stop: 1 rgb(10, 255, 10));
     color: black; 
     border-radius: 3px; 
     border: 1px solid black;
 }
 QPushButton#blackOff {
-    background-color: rgb(255, 50, 50); 
+    /* background-color: rgb(255, 50, 50);  */
+    background-color: QLinearGradient( x1: 0, y1: 0,
+                             x2: 0, y2: 1, 
+                            stop: 0 rgb(225, 40, 40),
+                            stop: 1 rgb(255, 80, 80));
     color: black; 
     border-radius: 3px; 
     border: 1px solid black;
 }
 
 QPushButton#blackOff:hover {
-    background-color: rgb(255, 30, 30); 
+    background-color: QLinearGradient( x1: 0, y1: 0,
+                             x2: 0, y2: 1, 
+                            stop: 0 rgb(225, 20, 20),
+                            stop: 1 rgb(255, 40, 40));
     color: black; 
     border-radius: 3px; 
     border: 1px solid black;
 }
 
 QPushButton#blackOff:pressed {
-    background-color: rgb(255, 10, 10); 
+    background-color: QLinearGradient( x1: 0, y1: 0,
+                             x2: 0, y2: 1, 
+                            stop: 0 rgb(225, 0, 0),
+                            stop: 1 rgb(255, 10, 10));
     color: black; 
     border-radius: 3px; 
     border: 1px solid black; 
