@@ -13,7 +13,6 @@ import time
 import traceback
 import subprocess
 import atexit
-import datetime
 import glob
 import threading
 import random
@@ -21,7 +20,12 @@ import sys
 import json
 from pydub import AudioSegment
 from pydub.playback import play
+from datetime import datetime
 import os
+
+title = 'Algorhythm'
+version = 'v0.1'
+latest_update_date = datetime(2020, 9, 29, 8, 18, 30)
 
 
 class GenerateThread(QThread):
@@ -99,21 +103,14 @@ class GenerateThread(QThread):
                 elif self.algorithmName == 'Step':
                     step_keys = []
                     step_note_keys = []
-                    all_available_step_notes = []
+                    step_available_notes = []
+                    step_available_notes_types = []
                     if not step_keys:
                         step_keys, step_note_keys = self.getStepNumberList()
-                    for i, j in enumerate(step_keys):
-                        for o, k in enumerate(self.all_available_notes):
-                            if j == k:
-                                all_available_step_notes.append(j)
-                    # for i, j in enumerate(step_note_keys):
-                        # print(j)
-                    # for o, k in enumerate(all_available_note_types):
-                    #     print(k)
-                    for i, j in enumerate(all_available_step_notes):
-                        temp = step_note_keys[i]
-                        selected_note_type = self.all_available_note_types[temp]
-                        note = AudioSegment.from_mp3(f"{piano_samples}{j}.mp3")
+                    for index, j in enumerate(step_note_keys):
+                        selected_note_type = step_note_keys[index]
+                        # selected_note_type = step_available_notes_types[i]
+                        note = AudioSegment.from_mp3(f"{piano_samples}{step_keys[index]}.mp3")
                         note_length = note.duration_seconds * 1000  # milliseconds
                         try:
                             note = note[:note_length / selected_note_type]
@@ -123,7 +120,7 @@ class GenerateThread(QThread):
                             final_song = note
                         else:
                             final_song += note
-                        if i == len(all_available_step_notes):
+                        if i == len(step_available_notes):
                             step_keys, step_note_keys = self.getStepNumberList()
                 elif self.algorithmName == 'Alphabet':
                     alpha_keys = []
@@ -131,7 +128,8 @@ class GenerateThread(QThread):
                     if not alpha_keys:
                         alpha_keys, alpha_note_keys = self.char_to_notes(
                             self.char_to_num(self.alphabetText.toPlainText(), False))
-                    print(alpha_keys, alpha_note_keys)
+                    final_time = (len(alpha_keys) * len(alpha_note_keys))
+                    print(final_time)
                     for i, j in enumerate(alpha_keys):
                         selected_note_type = alpha_note_keys[i]
                         for o, k in enumerate(j):
@@ -144,6 +142,9 @@ class GenerateThread(QThread):
                                 final_song = note
                             else:
                                 final_song += note
+                            print((o + 1) / final_time * 100)
+                            self.generated.emit('Status: Generating...', (final_time / (i + 1)),
+                                                self.progressBar, self.buttonName, self.buttonPlay, self.buttonDelete, self.labelStatus, final_name)
                     alphabet_finished = True
                 if alphabet_finished or final_song.duration_seconds >= self.seconds:
                     self.generated.emit('Status: Saving...', (final_song.duration_seconds / self.seconds * 100),
@@ -167,15 +168,13 @@ class GenerateThread(QThread):
                     self.generated.emit('Status: Canceled!', (final_song.duration_seconds / self.seconds * 100),
                                         self.progressBar, self.buttonName, self.buttonPlay, self.buttonDelete, self.labelStatus, final_name)
                     break
-                self.generated.emit('Status: Generating...', (final_song.duration_seconds / self.seconds * 100),
-                                    self.progressBar, self.buttonName, self.buttonPlay, self.buttonDelete, self.labelStatus, final_name)
 
     def getStepNumberList(self):
-        amount_of_numbers = random.randint(5, 15)
+        amount_of_numbers = random.randint(5, 10)
         # NOTE TYPES
         note_types_number = []
-        startNoteType = random.randint(2, 5)  # Min = 0, Max = 5
-        endNoteType = random.randint(startNoteType, 5)
+        startNoteType = random.randint(0, 32)  # Min = 0, Max = 5
+        endNoteType = random.randint(startNoteType, 32)
         try:
             stepNoteType = (endNoteType - startNoteType) / \
                 (amount_of_numbers - 1)
@@ -210,9 +209,15 @@ class GenerateThread(QThread):
                     int(start + (amount_of_numbers - 1) * step))  # end
                 note_types_number.append(
                     int(startNoteType + (amount_of_numbers - 1) * stepNoteType))  # end
+        closest_numbers = []
+        closest_numbers_note_types = []
         for i, j in enumerate(numbers):
+            closest_numbers.append(self.closest(self.all_available_notes_index, j))
+        for i, j in enumerate(note_types_number):
+            closest_numbers_note_types.append(self.closest(self.all_available_note_types, j))
+        for i, j in enumerate(closest_numbers):
             step_number_notes.append(keys_json[0]['keys'][j])
-        return step_number_notes, note_types_number
+        return step_number_notes, closest_numbers_note_types
 
     def char_to_num(self, words, useLowerCase=False):
         # Toggle this to only use 1-26 numbers
@@ -261,6 +266,8 @@ class mainwindowUI(QMainWindow):
         self.load_theme()
         self.center()
         self.setMinimumSize(700, 580)
+        self.setWindowTitle(title + ' ' + version)
+        self.setWindowIcon(QIcon("icon.png")) 
         self.show()
         self.load_VAR()
         self.load_UI()
@@ -320,6 +327,12 @@ class mainwindowUI(QMainWindow):
 
         self.actionAbout_Qt = self.findChild(QAction, 'actionAbout_Qt')
         self.actionAbout_Qt.triggered.connect(qApp.aboutQt)
+        
+        self.actionAbout = self.findChild(QAction, 'actionAbout')
+        self.actionAbout.triggered.connect(self.open_about_window)
+        
+        self.actionLicense = self.findChild(QAction, 'actionLicense')
+        self.actionLicense.triggered.connect(self.open_license_window)
         
         self.actionOpenMusicPlayer = self.findChild(
             QAction, 'actionOpen_Media_Player')
@@ -742,10 +755,14 @@ class mainwindowUI(QMainWindow):
                     if note_type_states[i] == 'True':
                         all_available_note_types.append(note_types[note])
         except:
-            ret = QMessageBox.question(self, 'No genre files', "Must create a genere file to generate music.\n\nWould you like to create a genre?", QMessageBox.Yes |
+            ret = QMessageBox.warning(self, 'No genre files', "Must create a genere file to generate music.\n\nWould you like to create a genre?", QMessageBox.Yes | 
                                        QMessageBox.No | QMessageBox.Cancel, QMessageBox.Cancel)
             if ret == QMessageBox.Yes:
                 self.createGenere()
+            return
+        if self.genAlgorithms.currentText() == 'Alphabet' and self.alphabetText.toPlainText() == '' or self.alphabetText.toPlainText() == ' ':
+            self.OpenErrorDialog(
+                'No text', 'No text to generate music, must have atleast one charecter')
             return
         if len(all_available_notes) == 0:
             self.OpenErrorDialog(
@@ -874,13 +891,13 @@ class mainwindowUI(QMainWindow):
             self.genresComboBox.setItemIcon(
                 index + 1, QIcon(image_folder + 'Create.png'))
             return
-        self.genresComboBox.insertSeparator(index+1)
+        self.genresComboBox.insertSeparator(index + 1)
         self.genresComboBox.addItem('Create')
         self.genresComboBox.setItemIcon(
-            index+1, QIcon(image_folder + 'Create.png'))
+            index + 1, QIcon(image_folder + 'Create.png'))
         self.genresComboBox.addItem('Delete')
         self.genresComboBox.setItemIcon(
-            index+2, QIcon(image_folder + 'Delete.png'))
+            index + 2, QIcon(image_folder + 'Delete.png'))
         self.genresComboBox.setIconSize(QSize(20, 20))
         # self.UINotes()
 
@@ -1083,7 +1100,16 @@ class mainwindowUI(QMainWindow):
     def open_settings_window(self):
         self.settingsUI = settingsUI()
         self.settingsUI.show()
-        # self.close()
+
+    def open_about_window(self):
+        time_now = datetime.now()
+        diffrence = (latest_update_date - time_now)
+        QMessageBox.information(
+            self, f'{title}', f"Version: {version}\nLast Update: {diffrence}\nDeveloped by: TheCodingJ's", QMessageBox.Ok, QMessageBox.Ok)
+
+    def open_license_window(self):
+        self.licenseUI = licensewindowUI()
+        self.licenseUI.show()
 
     def open_mediaplayer_window(self, name):
         file_path = os.path.dirname(os.path.abspath(__file__))
@@ -1092,6 +1118,26 @@ class mainwindowUI(QMainWindow):
             self.Player.setStyleSheet(open("style.qss", "r").read())
         self.Player.setWindowTitle('Media Player')
         self.Player.show()
+
+
+class licensewindowUI(QDialog):
+
+    def __init__(self):
+        super(licensewindowUI, self).__init__()
+        uic.loadUi(UI_folder + '/license.ui', self)
+        self.setWindowTitle("License")
+        self.setWindowIcon(self.style().standardIcon(getattr(QStyle, 'SP_FileDialogInfoView')))
+        self.icon = self.findChild(QLabel, 'lblIcon')
+        self.icon.setFixedSize(128, 128)
+        pixmap = QPixmap('icon.png')
+        myScaledPixmap = pixmap.scaled(self.icon.size(), Qt.KeepAspectRatio)
+        self.icon.setPixmap(myScaledPixmap)
+        self.lisenceText = self.findChild(QLabel, 'label_2')
+        with open('LICENSE', 'r') as f: self.lisenceText.setText(f.read())
+        self.btnClose = self.findChild(QPushButton, 'btnClose')
+        self.btnClose.setIcon(self.style().standardIcon(getattr(QStyle, 'SP_DialogOkButton')))
+        self.btnClose.clicked.connect(self.close)
+        self.setFixedSize(780, 470)
 
 
 class settingsUI(QWidget):
@@ -1605,9 +1651,9 @@ class Player(QWidget):
     def updateDurationInfo(self, currentInfo):
         duration = self.duration
         if currentInfo or duration:
-            currentTime = QTime((currentInfo / 3600) % 60, (currentInfo / 60) %
+            currentTime = QTime((currentInfo / 3600) % 60, (currentInfo / 60) % 
                                 60, currentInfo % 60, (currentInfo * 1000) % 1000)
-            totalTime = QTime((duration / 3600) % 60, (duration / 60) %
+            totalTime = QTime((duration / 3600) % 60, (duration / 60) % 
                               60, duration % 60, (duration * 1000) % 1000)
 
             format = 'hh:mm:ss' if duration > 3600 else 'mm:ss'
@@ -1637,7 +1683,7 @@ elif sys.platform == "win32":
 piano_samples = os.path.dirname(
     os.path.realpath(__file__)) + '/Piano Samples/'
 image_folder = os.path.dirname(os.path.realpath(__file__)) + '/Images/'
-compile_folder = os.path.dirname(os.path.realpath(__file__)) + '/Compile/'
+compile_folder = os.path.dirname(os.path.realpath(__file__)) + '/Music/'
 genres_folder = os.path.dirname(os.path.realpath(__file__)) + '/Genres/'
 UI_folder = os.path.dirname(
     os.path.realpath(__file__)) + '/Music_Generator/'
@@ -1727,7 +1773,6 @@ def exit_handler(): sys.exit()
 
 
 if __name__ == '__main__':
-    load_startup_variables()
     load_config_file(DefaultMode, DarkMode, LightMode, CSSOn)
     atexit.register(exit_handler)
     app = QApplication(sys.argv)
