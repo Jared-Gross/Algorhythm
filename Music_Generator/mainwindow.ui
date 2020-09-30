@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>545</width>
-    <height>530</height>
+    <height>547</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -86,7 +86,7 @@
              <x>0</x>
              <y>0</y>
              <width>503</width>
-             <height>69</height>
+             <height>71</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="gridLayout">
@@ -320,7 +320,7 @@
                <x>0</x>
                <y>0</y>
                <width>370</width>
-               <height>389</height>
+               <height>406</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_10">
@@ -361,7 +361,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>119</width>
-                 <height>238</height>
+                 <height>255</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="gridLayout_11">
@@ -454,6 +454,10 @@
     <property name="title">
      <string>&amp;Help</string>
     </property>
+    <addaction name="separator"/>
+    <addaction name="actionLicense"/>
+    <addaction name="actionAbout_Qt"/>
+    <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menu_View">
     <property name="title">
@@ -462,8 +466,8 @@
     <addaction name="actionPrefrences"/>
    </widget>
    <addaction name="menutest"/>
-   <addaction name="menuHelp"/>
    <addaction name="menu_View"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionExport">
@@ -487,6 +491,21 @@
   <action name="actionOpen_Media_Player">
    <property name="text">
     <string>&amp;Open Media Player</string>
+   </property>
+  </action>
+  <action name="actionLicense">
+   <property name="text">
+    <string>View License</string>
+   </property>
+  </action>
+  <action name="actionAbout_Qt">
+   <property name="text">
+    <string>About Qt</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
    </property>
   </action>
  </widget>
