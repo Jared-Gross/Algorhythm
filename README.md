@@ -27,7 +27,7 @@
     - Step (Random)
       - Pick three random numbers (starting number, ending number, and length)
       - Lets say starting number is 3, ending number is 7, and lenght is 8
-      - Then we evenly decrease from 7 to 3 using only 8 numbers.
+      - Then we evenly increase from 7 to 3 using only 8 numbers.
         - Ex. [3, 6, 5, 4, 6, 5, 4, 7]
       - Convert those values to the correct name files in [Piano Samples](Piano%20Samples) folder.
       - Do the exact same method but for note types. Ex. [Crochet, Minim]
