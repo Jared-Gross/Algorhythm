@@ -1,6 +1,6 @@
 ![Algorhythm](https://github.com/JareBear12418/Algorythm/blob/master/icon.png?raw=true "Algorhythm")
 # Algorhythm
-- Generate algorithmically music at the click of a button.
+- Generate music algorithmically at the click of a button.
 
 ## How it works
 - Using nothing but raw math/algorithms to generate music.
