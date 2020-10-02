@@ -1,3 +1,4 @@
+![Algorhythm](Algorythm/blob/master/icon.png?raw=true "Algorhythm")
 # Algorhythm
 - Generate algorithmically music at the click of a button.
 
