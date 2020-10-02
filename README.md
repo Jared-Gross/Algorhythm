@@ -49,8 +49,8 @@
 - Better generating algorithms.
 ## ToDo 
 - [x] Convert Audio to Video
-  - [ ] Implement conversion to `main.py`.
-- [ ] Refactor `Step` Algorithm
+  - [x] Implement conversion to `main.py`.
+- [x] Refactor `Step` Algorithm
 
 ## Known Bugs
 - [ ] Audio clipping with `demisemiquaver` & `semiquaver` notes.
