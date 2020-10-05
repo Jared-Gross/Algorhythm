@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# You should also check the file have the right to be execute. chmod +x file.py
+# You should also check the file have the right to be execute. chmod +x main.py
 
 import sys
 current_platform = 'Linux' if sys.platform == "linux" or sys.platform == "linux2" else 'Windows'
