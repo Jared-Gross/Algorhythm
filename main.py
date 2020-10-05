@@ -55,13 +55,20 @@ elif current_platform == 'Windows':
     from win10toast import ToastNotifier as notify
 
 '''
-To generate a requirements.txt file
+To generate a requirements.txt file you need to:
 pip install pipreqs
 
-pipreqs /path/to/project
-'''
+Then run:
+pipreqs /path/to/project/folder
 
-latest_update_date = datetime(2020, 9, 29, 8, 18, 30)
+To install requirements.txt run:
+pip install -r requirements.txt
+'''
+#                     year, month, day, hour, minute, second
+#                               y   m   d  h   m  s
+latest_update_date = datetime(2020, 10, 5, 11, 1, 23)
+latest_update_date_formated = latest_update_date.strftime("%A %d %B %Y %I:%M:%S%p")
+
 company = 'TheCodingJs'
 title = 'Algorhythm'
 version = 'v0.1'
@@ -1077,9 +1084,9 @@ class mainwindowUI(QMainWindow):
 
     def open_about_window(self):
         time_now = datetime.now()
-        diffrence = (time_now - latest_update_date)
+        diffrence = (time_now - latest_update_date).days
         QMessageBox.information(
-            self, f'{title}', f"Version: {version}\nLast Update: {diffrence}\nDeveloped by: TheCodingJ's", QMessageBox.Ok, QMessageBox.Ok)
+            self, f'{title}', f"Version: {version}\nLast Update: {diffrence} days ago on {latest_update_date_formated}.\nDeveloped by: TheCodingJ's", QMessageBox.Ok, QMessageBox.Ok)
 
     def open_license_window(self):
         self.licenseUI = licensewindowUI()
