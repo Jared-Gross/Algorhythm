@@ -37,15 +37,9 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5 import *
 from PyQt5 import uic
+
 # Other
-import os
-import json
-import glob
-import time
-import random
-import atexit
-import traceback
-import threading
+import os, json, glob, time, random, atexit, traceback, threading, ctypes
 from string import ascii_lowercase, ascii_uppercase
 from datetime import datetime
 
@@ -67,9 +61,10 @@ pip install pipreqs
 pipreqs /path/to/project
 '''
 
+latest_update_date = datetime(2020, 9, 29, 8, 18, 30)
+company = 'TheCodingJs'
 title = 'Algorhythm'
 version = 'v0.1'
-latest_update_date = datetime(2020, 9, 29, 8, 18, 30)
 
 
 class GenerateThread(QThread):
@@ -349,12 +344,14 @@ class mainwindowUI(QMainWindow):
     def __init__(self):
         super(mainwindowUI, self).__init__()
         uic.loadUi(UI_folder + 'mainwindow.ui', self)
-        self.load_theme()
-        self.center()
-        self.setMinimumSize(800, 580)
         self.setWindowTitle(title + ' ' + version)
         self.setWindowIcon(QIcon("icon.png"))
+        appid = u'{}.{}.{}'.format(company, title, version)
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(appid)
         self.show()
+        self.center()
+        self.setMinimumSize(800, 580)
+        self.load_theme()
 
         self.load_VAR()
         self.load_UI()
