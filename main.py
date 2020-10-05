@@ -738,18 +738,15 @@ class mainwindowUI(QMainWindow):
                     shutil.rmtree(path)  # remove dir and all contains
                 path = path.replace('.mp3', '.mp4')
             if not self.delete_how_many_files == 0 and final:
-                if self.delete_how_many_files == 1:
-                    self.send_notification(
-                        'Deleted', f'Successfully deleted {self.delete_how_many_files} file.')
-                else:
-                    self.send_notification(
-                        'Deleted', f'Successfully deleted {self.delete_how_many_files} files.')
+                grammerFix = 'file' if self.delete_how_many_files == 1 else 'files'
+                self.send_notification('Deleted', f'Successfully deleted {self.delete_how_many_files} {grammerFix}.')
         except Exception as e:
             print(e)
 
     def send_notification(self, header, message):
         # path to notification window icon
         ICON_PATH = os.path.realpath(__file__) + '/icon.png'
+        duration_sec = 3
         if current_platform == 'Linux':
             # initialise the d-bus connection
             notify.init(title)
@@ -758,7 +755,7 @@ class mainwindowUI(QMainWindow):
             # set urgency level
             n.set_urgency(notify.URGENCY_NORMAL)
             # set timeout for a notification
-            n.set_timeout(3000)
+            n.set_timeout(duration_sec * 1000) #milliseconds
             # update notification data for Notification object
             n.update(header, message)
             # show notification on screen
@@ -768,7 +765,7 @@ class mainwindowUI(QMainWindow):
             n = notify()
             # Show notification whenever needed
             n.show_toast(header, message, threaded=True,
-                         icon_path=ICON_PATH, duration=3)  # 3 seconds
+                         icon_path=ICON_PATH, duration=duration_sec)  # 3 seconds
 
     def createGenere(self):
         text, okPressed = QInputDialog.getText(
@@ -787,6 +784,7 @@ class mainwindowUI(QMainWindow):
         item, ok = QInputDialog().getItem(self, "Select one to delete.",
                                           "Generes:", genre_names, 0, False)
         if ok:
+            text = item
             for i in self.all_genre_files:
                 i = i.replace(self.genres_folder, '')
                 i = i.replace('.json', '')
@@ -855,8 +853,7 @@ class mainwindowUI(QMainWindow):
                 })
             with open(config_file, mode='w+', encoding='utf-8') as file:
                 json.dump(config_json, file, ensure_ascii=True, indent=4)
-            load_config_file(DefaultMode, DarkMode, LightMode,
-                             CSSOn, lastSelectedGenre, lastSelectedAlgorithm)
+            self.reload_config_file()
             genres_file = self.all_genre_files[self.genresComboBox.currentIndex(
             )]
             with open(genres_file) as file:
@@ -902,8 +899,7 @@ class mainwindowUI(QMainWindow):
             })
         with open(config_file, mode='w+', encoding='utf-8') as file:
             json.dump(config_json, file, ensure_ascii=True, indent=4)
-        load_config_file(DefaultMode, DarkMode, LightMode, CSSOn,
-                         lastSelectedGenre, lastSelectedAlgorithm)
+        self.reload_config_file()
 
     def clearLayout(self, layout):
         if layout is not None:
@@ -972,9 +968,15 @@ class mainwindowUI(QMainWindow):
             print(e)
 
     def exportFiles(self, comboExport, labelStatus, buttonName, file_name, audio_file, info_notes, info_note_types, info_duration_per_note):
-        self.setCursor(Qt.BusyCursor)
-        threading.Thread(target=self.exportFilesThread, args=(comboExport, labelStatus, buttonName,
-                                                              file_name, audio_file, info_notes, info_note_types, info_duration_per_note,)).start()
+        fileName = file_name.replace('.mp3', '')
+        default_dir = compile_folder
+        default_filename = os.path.join(default_dir, fileName)
+        if comboExport.currentText() == 'Audio (.mp3)':
+            directoryAndFile, _ = QFileDialog.getSaveFileName( self, "Save audio file", default_filename, "Audio Files (*.mp3)")
+            if directoryAndFile:
+                self.setCursor(Qt.BusyCursor)
+                threading.Thread(target=self.exportFilesThread, args=(comboExport, labelStatus, buttonName,
+                                                              directoryAndFile, audio_file, info_notes, info_note_types, info_duration_per_note,)).start()
 
     def exportFilesThread(self, comboExport, labelStatus, buttonName, file_name, audio_file, info_notes, info_note_types, info_duration_per_note):
         width = 640
@@ -982,7 +984,7 @@ class mainwindowUI(QMainWindow):
         if comboExport.currentText() == 'Audio (.mp3)':
             comboExport.setCurrentIndex(0)
             labelStatus.setText('Status: Saving!')
-            audio_file.export(f"{compile_folder}{file_name}", format="mp3")
+            audio_file.export(f"{file_name}", format="mp3")
             labelStatus.setText('Status: Finished!')
         elif comboExport.currentText() == 'Video (.mp4)':
             comboExport.setCurrentIndex(0)
@@ -991,9 +993,9 @@ class mainwindowUI(QMainWindow):
             labelStatus.setText('Status: Saving!')
 
             file_name = file_name.replace('.mp3', ' V.mp3')
-            audio_file.export(f"{compile_folder}{file_name}", format="mp3")
+            audio_file.export(f"{file_name}", format="mp3")
             labelStatus.setText('Status: Generating...')
-            music = AudioFileClip(f'{compile_folder}{file_name}')
+            music = AudioFileClip(f'{file_name}')
             for i in range(len(info_notes)):
                 # https://www.reddit.com/r/moviepy/comments/4nin6q/update_imagemagik_and_moviepy_has_broken/
                 txt_clip = TextClip(
@@ -1048,8 +1050,7 @@ class mainwindowUI(QMainWindow):
         global total
         total = 0
         self.clearLayout(self.gridMusicProgress)
-        load_config_file(DefaultMode, DarkMode, LightMode, CSSOn,
-                         lastSelectedGenre, lastSelectedAlgorithm)
+        self.reload_config_file()
 
     def open_settings_window(self):
         self.settingsUI = settingsUI()
@@ -1064,8 +1065,8 @@ class mainwindowUI(QMainWindow):
     def open_license_window(self):
         self.licenseUI = licensewindowUI()
         self.licenseUI.show()
-
-
+    def reload_config_file(self):
+        load_config_file(DefaultMode, DarkMode, LightMode, CSSOn, lastSelectedGenre, lastSelectedAlgorithm)
 class licensewindowUI(QDialog):
 
     def __init__(self):
@@ -1127,8 +1128,7 @@ class settingsUI(QWidget):
             })
         with open(config_file, mode='w+', encoding='utf-8') as file:
             json.dump(config_json, file, ensure_ascii=True, indent=4)
-        load_config_file(DefaultMode, DarkMode, LightMode, CSSOn,
-                         lastSelectedGenre, lastSelectedAlgorithm)
+        self.reload_config_file()
         if CSSOn[0] == 'True':
             self.setStyleSheet(open("style.qss", "r").read())
         if DefaultMode[0] == 'True':
@@ -1286,8 +1286,7 @@ def exit_handler(): sys.exit()
 
 
 if __name__ == '__main__':
-    load_config_file(DefaultMode, DarkMode, LightMode, CSSOn,
-                     lastSelectedGenre, lastSelectedAlgorithm)
+    load_config_file(DefaultMode, DarkMode, LightMode, CSSOn, lastSelectedGenre, lastSelectedAlgorithm)
     atexit.register(exit_handler)
     app = QApplication(sys.argv)
     window = mainwindowUI()
