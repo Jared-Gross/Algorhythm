@@ -13,9 +13,12 @@ from pydub.playback import play
 from moviepy.editor import *
 '''
 NOTE make sure you have it installed properly
+pip install Wand
 sudo apt-get install python-wand
 sudo apt-get install libmagickwand-dev
-pip install Wand
+sudo apt-get install imagemagick
+sudo apt-get update
+sudo apt-get upgrade
 
 if moveipy has wierd errors about not being found on LINUX machines, then is how you fix it:
 go to: 
