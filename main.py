@@ -356,8 +356,9 @@ class mainwindowUI(QMainWindow):
         uic.loadUi(UI_folder + 'mainwindow.ui', self)
         self.setWindowTitle(title + ' ' + version)
         self.setWindowIcon(QIcon("icon.png"))
-        appid = u'{}.{}.{}'.format(company, title, version)
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(appid)
+        if current_platform == 'Windows':
+            appid = u'{}.{}.{}'.format(company, title, version)
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(appid)
         self.show()
         self.center()
         self.setMinimumSize(800, 580)
@@ -562,17 +563,10 @@ class mainwindowUI(QMainWindow):
         temp_note_list_states = note_states
         for i, j in enumerate(note_types):
             if j == name:
-                if temp_note_type_list_states[i] == 'True':
-                    temp_note_type_list_states[i] = 'False'
-                else:
-                    temp_note_type_list_states[i] = 'True'
+                temp_note_type_list_states[i] = 'False' if temp_note_type_list_states[i] == 'True' else 'True'
         for i, j in enumerate(keys_json[0]['keys']):
             if j == name:
-                if temp_note_list_states[i] == 'True':
-                    temp_note_list_states[i] = 'False'
-                else:
-                    temp_note_list_states[i] = 'True'
-
+                temp_note_list_states[i] = 'False' if temp_note_list_states[i] == 'True' else 'True'
         genres_json.pop(0)
         genres_json.append(
             {"Name": [str(self.genresComboBox.currentText())], "Notes": [{"C1": [str(temp_note_list_states[0])], "C#1": [str(temp_note_list_states[1])], "D1": [str(temp_note_list_states[2])], "Eb1": [str(temp_note_list_states[3])], "E1": [str(temp_note_list_states[4])], "F1": [str(temp_note_list_states[5])], "F#1": [str(temp_note_list_states[6])], "G1": [str(temp_note_list_states[7])], "Ab1": [str(temp_note_list_states[8])], "A1": [str(temp_note_list_states[9])], "Bb1": [str(temp_note_list_states[10])], "B1": [str(temp_note_list_states[11])], "C2": [str(temp_note_list_states[12])], "C#2": [str(temp_note_list_states[13])], "D2": [str(temp_note_list_states[14])], "Eb2": [str(temp_note_list_states[15])], "E2": [str(temp_note_list_states[16])], "F2": [str(temp_note_list_states[17])], "F#2": [str(temp_note_list_states[18])], "G2": [str(temp_note_list_states[19])], "Ab2": [str(temp_note_list_states[20])], "A2": [str(temp_note_list_states[21])], "Bb2": [str(temp_note_list_states[22])], "B2": [str(temp_note_list_states[23])], "C3": [str(temp_note_list_states[24])], "C#3": [str(temp_note_list_states[25])], "D3": [str(temp_note_list_states[26])], "Eb3": [str(temp_note_list_states[27])], "E3": [str(temp_note_list_states[28])], "F3": [str(temp_note_list_states[29])], "F#3": [str(temp_note_list_states[30])], "G3": [str(temp_note_list_states[31])], "Ab3": [str(temp_note_list_states[32])], "A3": [str(temp_note_list_states[33])], "Bb3": [str(temp_note_list_states[34])], "B3": [str(temp_note_list_states[35])], "C4": [str(temp_note_list_states[36])], "C#4": [str(temp_note_list_states[37])], "D4": [str(temp_note_list_states[38])], "Eb4": [str(temp_note_list_states[39])], "E4": [str(temp_note_list_states[40])], "F4": [str(temp_note_list_states[41])], "F#4": [str(temp_note_list_states[42])], "G4": [str(temp_note_list_states[43])], "Ab4": [str(temp_note_list_states[44])], "A4": [str(temp_note_list_states[45])], "Bb4": [str(temp_note_list_states[46])], "B4": [str(temp_note_list_states[47])], "C5": [str(temp_note_list_states[48])], "C#5": [str(temp_note_list_states[49])], "D5": [str(temp_note_list_states[50])], "Eb5": [str(temp_note_list_states[51])], "E5": [str(temp_note_list_states[52])], "F5": [str(temp_note_list_states[53])], "F#5": [str(temp_note_list_states[54])], "G5": [str(temp_note_list_states[55])], "Ab5": [str(temp_note_list_states[56])], "A5": [str(temp_note_list_states[57])], "Bb5": [str(temp_note_list_states[58])], "B5": [str(temp_note_list_states[59])], "C6": [str(temp_note_list_states[60])]}], "Note Types": [{"Semibreve": [str(temp_note_type_list_states[0])], "Minim": [str(temp_note_type_list_states[1])], "Crochet": [str(temp_note_type_list_states[2])], "Quaver": [str(temp_note_type_list_states[3])], "Semiquaver": [str(temp_note_type_list_states[4])], "Demisemiquaver": [str(temp_note_type_list_states[5])]}]})
@@ -591,8 +585,7 @@ class mainwindowUI(QMainWindow):
         self.clearLayout(self.NoteGridLayout)
         self.clearLayout(self.NoteTypeGridLayout)
         self.UINotes()
-        if play:
-            threading.Thread(target=self.playNote, args=(index,)).start()
+        if play: threading.Thread(target=self.playNote, args=(index,)).start()
 
         # if play: self.playNote(index)
 
@@ -646,7 +639,7 @@ class mainwindowUI(QMainWindow):
                     if note_type_states[i] == 'True':
                         all_available_note_types.append(note_types[note])
         except:
-            ret = QMessageBox.warning(self, 'No genre files', "Must create a genere file to generate music.\n\nWould you like to create a genre?", QMessageBox.Yes |
+            ret = QMessageBox.warning(self, 'No genre files', "Must create a genere file to generate music.\n\nWould you like to create a genre?", QMessageBox.Yes | 
                                       QMessageBox.No | QMessageBox.Cancel, QMessageBox.Cancel)
             if ret == QMessageBox.Yes:
                 self.createGenere()
@@ -717,17 +710,12 @@ class mainwindowUI(QMainWindow):
                 loop.exec_()
 
     def btnOpenPath(self, path):
-        if current_platform == 'Linux' or current_platform == 'Mac':
-            wb.open(path)
+        if current_platform == 'Linux': wb.open(path)
         elif current_platform == 'Windows':
-            FILEBROWSER_PATH = os.path.join(
-                os.getenv('WINDIR'), 'explorer.exe')
+            FILEBROWSER_PATH = os.path.join(os.getenv('WINDIR'), 'explorer.exe')
             path = os.path.normpath(path)
-            if os.path.isdir(path):
-                subprocess.run([FILEBROWSER_PATH, path])
-            elif os.path.isfile(path):
-                subprocess.run(
-                    [FILEBROWSER_PATH, '/select,', os.path.normpath(path)])
+            if os.path.isdir(path): subprocess.run([FILEBROWSER_PATH, path])
+            elif os.path.isfile(path): subprocess.run([FILEBROWSER_PATH, '/select,', os.path.normpath(path)])
 
     def btnDeleteAllFiles(self, filesToDelete):
         self.delete_how_many_files = 0
@@ -742,14 +730,6 @@ class mainwindowUI(QMainWindow):
         try:
             if not deleteAllFiles:
                 self.delete_how_many_files = 0
-            # btnDelete.setEnabled(False)
-            # btnName.setEnabled(False)
-            # lblStatus.setText('Status: Deleted!')
-            # btnPlay.setEnabled(False)
-            # comboExport.setEnabled(False)
-            # if deleteAll:
-                # DIR = '/tmp'
-                # print len([name for name in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, name))])
             for i in range(2):
                 if os.path.isfile(path) or os.path.islink(path):
                     os.remove(path)  # remove the file
@@ -807,20 +787,15 @@ class mainwindowUI(QMainWindow):
         item, ok = QInputDialog().getItem(self, "Select one to delete.",
                                           "Generes:", genre_names, 0, False)
         if ok:
-            text = item
-            if text != '':
-                for i in self.all_genre_files:
-                    i = i.replace(self.genres_folder, '')
-                    i = i.replace('.json', '')
-                    if text == i:
-                        if not text.endswith('.json'):
-                            os.remove(self.genres_folder + text + '.json')
-                        else:
-                            os.remove(self.genres_folder + text)
+            for i in self.all_genre_files:
+                i = i.replace(self.genres_folder, '')
+                i = i.replace('.json', '')
+                if text == i:
+                    if not text.endswith('.json'): os.remove(self.genres_folder + text + '.json')
+                    else: os.remove(self.genres_folder + text)
         self.refreshNoteSettingComboBox()
         self.updateNotes()
-        if not len(genre_names) == 1:
-            self.genresComboBox.setCurrentIndex(0)
+        if not len(genre_names) == 1: self.genresComboBox.setCurrentIndex(0)
 
     def refreshNoteSettingComboBox(self):
         index = 0
@@ -857,16 +832,13 @@ class mainwindowUI(QMainWindow):
     def updateNotes(self):
         global genres_json, note_states, note_type_states, genres_file
         if self.genresComboBox.currentText() == 'Create':
-            # self.refreshNoteSettingComboBox()
             self.UINotes()
             self.createGenere()
             return
         if self.genresComboBox.currentText() == 'Delete':
-            # self.refreshNoteSettingComboBox()
             self.UINotes()
             self.deleteGenere()
             return
-        # self.genre_names.clear()
         note_states.clear()
         note_type_states.clear()
         try:
@@ -938,10 +910,8 @@ class mainwindowUI(QMainWindow):
             while layout.count():
                 item = layout.takeAt(0)
                 widget = item.widget()
-                if widget is not None:
-                    widget.deleteLater()
-                else:
-                    self.clearLayout(item.layout())
+                if widget is not None: widget.deleteLater()
+                else: self.clearLayout(item.layout())
         self.btnDeleteAllList.clear()
 
     def stop_generation_threads(self):
@@ -1100,7 +1070,7 @@ class licensewindowUI(QDialog):
 
     def __init__(self):
         super(licensewindowUI, self).__init__()
-        uic.loadUi(UI_folder + '/license.ui', self)
+        uic.loadUi(UI_folder + 'license.ui', self)
         self.setWindowTitle("License")
         self.setWindowIcon(self.style().standardIcon(
             getattr(QStyle, 'SP_FileDialogInfoView')))
@@ -1186,7 +1156,7 @@ class settingsUI(QWidget):
             palette.setColor(QPalette.WindowText, Qt.white)
             palette.setColor(QPalette.Base, QColor(25, 25, 25))
             palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
-            palette.setColor(QPalette.ToolTipBase, Qt.white)
+            palette.setColor(QPalette.ToolTipBase, Qt.black)
             palette.setColor(QPalette.ToolTipText, Qt.white)
             palette.setColor(QPalette.Text, Qt.white)
             palette.setColor(QPalette.Button, QColor(30, 30, 30))
