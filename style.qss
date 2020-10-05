@@ -111,7 +111,6 @@ QPushButton#blackOn:pressed {
     border: 1px solid black;
 }
 QPushButton#blackOff {
-    /* background-color: rgb(255, 50, 50);  */
     background-color: QLinearGradient( x1: 0, y1: 0,
                              x2: 0, y2: 1, 
                             stop: 0 rgb(225, 40, 40),
@@ -141,7 +140,7 @@ QPushButton#blackOff:pressed {
     border: 1px solid black; 
 }
 
-QSlider::handle:horizontal 
+/* QSlider::handle:horizontal 
 {
 background: transparent;
 width: 8px;
@@ -174,4 +173,4 @@ border-color: #999999;
 }
 QSlider::handle:horizontal:disabled {
 background: #2a82da;
-}
+} */
