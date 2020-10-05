@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>545</width>
-    <height>547</height>
+    <width>848</width>
+    <height>557</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -85,8 +85,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>503</width>
-             <height>71</height>
+             <width>806</width>
+             <height>69</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="gridLayout">
@@ -132,28 +132,51 @@
                  </property>
                 </widget>
                </item>
-               <item row="1" column="0">
-                <widget class="QDoubleSpinBox" name="inputSongLength_4">
-                 <property name="toolTip">
-                  <string extracomment="seconds"/>
-                 </property>
-                 <property name="toolTipDuration">
-                  <number>1</number>
-                 </property>
-                 <property name="decimals">
-                  <number>3</number>
-                 </property>
-                 <property name="minimum">
-                  <double>1.000000000000000</double>
-                 </property>
-                 <property name="maximum">
-                  <double>999999.989999999990687</double>
-                 </property>
-                 <property name="singleStep">
-                  <double>5.000000000000000</double>
-                 </property>
-                 <property name="value">
-                  <double>30.000000000000000</double>
+               <item row="2" column="0">
+                <layout class="QHBoxLayout" name="horizontalLayout_4">
+                 <item>
+                  <widget class="QLabel" name="label_8">
+                   <property name="font">
+                    <font>
+                     <pointsize>16</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>≈</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QDoubleSpinBox" name="inputSongLength_4">
+                   <property name="toolTip">
+                    <string extracomment="seconds"/>
+                   </property>
+                   <property name="toolTipDuration">
+                    <number>1</number>
+                   </property>
+                   <property name="decimals">
+                    <number>3</number>
+                   </property>
+                   <property name="minimum">
+                    <double>1.000000000000000</double>
+                   </property>
+                   <property name="maximum">
+                    <double>999999.989999999990687</double>
+                   </property>
+                   <property name="singleStep">
+                    <double>5.000000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>30.000000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="2" column="1">
+                <widget class="QLabel" name="label_7">
+                 <property name="text">
+                  <string>(sec)</string>
                  </property>
                 </widget>
                </item>
@@ -319,8 +342,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>370</width>
-               <height>406</height>
+               <width>597</width>
+               <height>416</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_10">
@@ -360,8 +383,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>119</width>
-                 <height>255</height>
+                 <width>195</width>
+                 <height>265</height>
                 </rect>
                </property>
                <layout class="QGridLayout" name="gridLayout_11">
@@ -438,7 +461,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>545</width>
+     <width>848</width>
      <height>25</height>
     </rect>
    </property>
@@ -446,9 +469,13 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <addaction name="actionExport"/>
-    <addaction name="action_Import"/>
-    <addaction name="actionOpen_Media_Player"/>
+    <widget class="QMenu" name="menu_Prefrences">
+     <property name="title">
+      <string>&amp;Prefrences</string>
+     </property>
+     <addaction name="actionTheme"/>
+    </widget>
+    <addaction name="menu_Prefrences"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -457,16 +484,10 @@
     <addaction name="separator"/>
     <addaction name="actionLicense"/>
     <addaction name="actionAbout_Qt"/>
+    <addaction name="separator"/>
     <addaction name="actionAbout"/>
    </widget>
-   <widget class="QMenu" name="menu_View">
-    <property name="title">
-     <string>Setti&amp;ngs</string>
-    </property>
-    <addaction name="actionPrefrences"/>
-   </widget>
    <addaction name="menutest"/>
-   <addaction name="menu_View"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
@@ -506,6 +527,11 @@
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="actionTheme">
+   <property name="text">
+    <string>Theme</string>
    </property>
   </action>
  </widget>
