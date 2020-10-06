@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin python3
 # You should also check the file have the right to be execute. chmod +x main.py
 
 import sys
@@ -40,6 +40,20 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5 import *
 from PyQt5 import uic
+
+# Themes
+import qdarkstyle, qdarkgraystyle
+from Themes.Breeze import breeze_resources
+'''
+pip install qdarkgraystyle
+https://github.com/ColinDuquesnoy/QDarkStyleSheet
+
+pip install qdarkstyle
+https://github.com/mstuttgart/qdarkgraystyle
+
+Breeze
+https://github.com/Alexhuszagh/BreezeStyleSheets
+'''
 
 # Other
 import os, json, glob, time, random, atexit, traceback, threading, ctypes
@@ -355,7 +369,7 @@ class mainwindowUI(QMainWindow):
         super(mainwindowUI, self).__init__()
         uic.loadUi(UI_folder + 'mainwindow.ui', self)
         self.setWindowTitle(title + ' ' + version)
-        self.setWindowIcon(QIcon("icon.png"))
+        self.setWindowIcon(QIcon(os.path.dirname(os.path.realpath(__file__)) + "/icon.png"))
         if current_platform == 'Windows':
             appid = u'{}.{}.{}'.format(company, title, version)
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(appid)
@@ -448,6 +462,31 @@ class mainwindowUI(QMainWindow):
         self.actionLicense = self.findChild(QAction, 'actionLicense')
         self.actionLicense.triggered.connect(self.open_license_window)
 
+        # Adding item on the menu bar 
+        # self.tray = QSystemTrayIcon() 
+        # self.tray.setIcon(QIcon(os.path.dirname(os.path.realpath(__file__)) + "/icon.png")) 
+        self.tray_icon = QSystemTrayIcon(self)
+        self.tray_icon.setIcon(QIcon(os.path.dirname(os.path.realpath(__file__)) + "/icon.png")) 
+ 
+        '''
+            Define and add steps to work with the system tray icon
+            show - show window
+            hide - hide window
+            exit - exit from application
+        '''
+        show_action = QAction("Show", self)
+        quit_action = QAction("Exit", self)
+        hide_action = QAction("Hide", self)
+        show_action.triggered.connect(self.show)
+        hide_action.triggered.connect(self.hide)
+        quit_action.triggered.connect(qApp.quit)
+        tray_menu = QMenu()
+        tray_menu.addAction(show_action)
+        tray_menu.addAction(hide_action)
+        tray_menu.addAction(quit_action)
+        self.tray_icon.setContextMenu(tray_menu)
+        self.tray_icon.show()
+
     def load_VAR(self):
         self.algorithms = [
             'Random', 'Step (+)', 'Step (-)', 'Step Random', 'Alphabet']
@@ -474,45 +513,65 @@ class mainwindowUI(QMainWindow):
         global originalPalette
         if originalPalette == None:
             originalPalette = QApplication.palette()
-        if CSSOn[0] == 'True':
-            self.setStyleSheet(open("style.qss", "r").read())
+        if CSSOn[0] == 'True': self.setStyleSheet(open(themes_folder + "style.qss", "r").read())
+        else: self.setStyleSheet('')
         if DefaultMode[0] == 'True':
             if current_platform == 'Windows':
                 app.setStyle('Windowsvista')
             elif current_platform == 'Linux':
                 app.setStyle('Fusion')
             QApplication.setPalette(originalPalette)
+            app.setStyleSheet('')
         if LightMode[0] == 'True':
-            app.setPalette(QApplication.style().standardPalette())
-            palette = QPalette()
-            gradient = QLinearGradient(0, 0, 0, 400)
-            gradient.setColorAt(0.0, QColor(240, 240, 240))
-            gradient.setColorAt(1.0, QColor(215, 215, 215))
-            palette.setColor(QPalette.ButtonText, Qt.black)
-            palette.setColor(QPalette.ToolTipBase, Qt.white)
-            palette.setBrush(QPalette.Window, QBrush(gradient))
-            app.setPalette(palette)
-            app.setStyle('Fusion')
+            if lastSelectedTheme[0] == 'Fusion' or lastSelectedTheme[0] == 'windowsvista':
+                app.setPalette(QApplication.style().standardPalette())
+                palette = QPalette()
+                gradient = QLinearGradient(0, 0, 0, 400)
+                gradient.setColorAt(0.0, QColor(240, 240, 240))
+                gradient.setColorAt(1.0, QColor(215, 215, 215))
+                palette.setColor(QPalette.ButtonText, Qt.black)
+                palette.setBrush(QPalette.Window, QBrush(gradient))
+                app.setPalette(palette)
+                app.setStyle(lastSelectedTheme[0])
+                app.setStyleSheet('')
+            elif lastSelectedTheme[0] == 'Breeze':
+                file = QFile(themes_folder + 'Breeze/light.qss')
+                file.open(QFile.ReadOnly | QFile.Text)
+                stream = QTextStream(file)
+                app.setStyleSheet(stream.readAll())
         if DarkMode[0] == 'True':
-            palette = QPalette()
-            gradient = QLinearGradient(0, 0, 0, 400)
-            gradient.setColorAt(0.0, QColor(40, 40, 40))
-            gradient.setColorAt(1.0, QColor(30, 30, 30))
-            palette.setBrush(QPalette.Window, QBrush(gradient))
-            palette.setColor(QPalette.WindowText, Qt.white)
-            palette.setColor(QPalette.Base, QColor(25, 25, 25))
-            palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
-            palette.setColor(QPalette.ToolTipBase, Qt.black)
-            palette.setColor(QPalette.ToolTipText, Qt.white)
-            palette.setColor(QPalette.Text, Qt.white)
-            palette.setColor(QPalette.Button, QColor(30, 30, 30))
-            palette.setColor(QPalette.ButtonText, Qt.white)
-            palette.setColor(QPalette.BrightText, Qt.red)
-            palette.setColor(QPalette.Link, QColor(42, 130, 218))
-            palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
-            palette.setColor(QPalette.HighlightedText, Qt.black)
-            app.setPalette(palette)
-            app.setStyle('Fusion')
+            if lastSelectedTheme[0] == 'Fusion' or lastSelectedTheme[0] == 'windowsvista':
+                palette = QPalette()
+                gradient = QLinearGradient(0, 0, 0, 400)
+                gradient.setColorAt(0.0, QColor(40, 40, 40))
+                gradient.setColorAt(1.0, QColor(30, 30, 30))
+                palette.setBrush(QPalette.Window, QBrush(gradient))
+                palette.setColor(QPalette.WindowText, Qt.white)
+                palette.setColor(QPalette.Base, QColor(25, 25, 25))
+                palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
+                palette.setColor(QPalette.ToolTipBase, Qt.black)
+                palette.setColor(QPalette.ToolTipText, Qt.white)
+                palette.setColor(QPalette.Text, Qt.white)
+                palette.setColor(QPalette.Button, QColor(30, 30, 30))
+                palette.setColor(QPalette.ButtonText, Qt.white)
+                palette.setColor(QPalette.BrightText, Qt.red)
+                palette.setColor(QPalette.Link, QColor(42, 130, 218))
+                palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
+                palette.setColor(QPalette.HighlightedText, Qt.black)
+                app.setPalette(palette)
+                app.setStyle(lastSelectedTheme[0])
+                app.setStyleSheet('')
+            elif lastSelectedTheme[0] == 'Breeze':
+                file = QFile(themes_folder + 'Breeze/dark.qss')
+                file.open(QFile.ReadOnly | QFile.Text)
+                stream = QTextStream(file)
+                app.setStyleSheet(stream.readAll())
+            elif lastSelectedTheme[0] == 'qdarkstyle':
+                QApplication.setPalette(originalPalette)
+                app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
+            elif lastSelectedTheme[0] == 'qdarkgraystyle':
+                QApplication.setPalette(originalPalette)
+                app.setStyleSheet(qdarkgraystyle.load_stylesheet())
 
     def UINotes(self):
         try:
@@ -529,12 +588,12 @@ class mainwindowUI(QMainWindow):
                         f'{j[0]} Sharp {j[2]}' if '#' in j else f'{j[0]} Flat {j[2]}')
                     self.btnNote.setObjectName(
                         'blackOn' if note_states[i] == 'True' else 'blackOff')
-                    self.btnNote.setFixedSize(28, 64)
+                    self.btnNote.setFixedSize(34, 64)
                 else:
                     self.btnNote.setToolTip(f'{j}')
                     self.btnNote.setObjectName(
                         'whiteOn' if note_states[i] == 'True' else 'whiteOff')
-                    self.btnNote.setFixedSize(36, 64)
+                    self.btnNote.setFixedSize(42, 64)
                 self.NoteGridLayout.addWidget(
                     self.btnNote, i / colSize, i % colSize)
             for i, j in enumerate(note_types):
@@ -545,7 +604,7 @@ class mainwindowUI(QMainWindow):
                 self.btnNoteType.setChecked(
                     True if note_type_states[i] == 'True' else False)
                 self.btnNoteType.setIcon(QIcon(f'{image_folder}{j}.png'))
-                self.btnNoteType.setIconSize(QSize(32, 32))
+                self.btnNoteType.setIconSize(QSize(42, 42))
                 self.btnNoteType.setObjectName(
                     "whiteOn" if note_type_states[i] == 'True' else "whiteOff")
 
@@ -685,8 +744,8 @@ class mainwindowUI(QMainWindow):
                 self.comboExport = QComboBox()
                 self.comboExport.setEnabled(False)
                 self.comboExport.addItem('Save As...')
-                self.comboExport.addItem('Audio (.mp3)')
-                self.comboExport.addItem('Video (.mp4)')
+                self.comboExport.addItem('Audio')
+                self.comboExport.addItem('Video')
                 # self.comboExport.addItem('')
 
                 self.gridMusicProgressGridLayout.addWidget(
@@ -755,7 +814,7 @@ class mainwindowUI(QMainWindow):
             # set urgency level
             n.set_urgency(notify.URGENCY_NORMAL)
             # set timeout for a notification
-            n.set_timeout(duration_sec * 1000) #milliseconds
+            n.set_timeout(duration_sec * 1000)  # milliseconds
             # update notification data for Notification object
             n.update(header, message)
             # show notification on screen
@@ -849,6 +908,7 @@ class mainwindowUI(QMainWindow):
                     "Light": [str(LightMode[0])],
                     "CSS": [str(CSSOn[0])],
                     "Last Genre": [int(self.genresComboBox.currentIndex())],
+                    "Last Theme": [str(lastSelectedTheme[0])],
                     "Last Algorithm": [int(lastSelectedAlgorithm[0])]
                 })
             with open(config_file, mode='w+', encoding='utf-8') as file:
@@ -895,6 +955,7 @@ class mainwindowUI(QMainWindow):
                 "Light": [str(LightMode[0])],
                 "CSS": [str(CSSOn[0])],
                 "Last Genre": [int(lastSelectedGenre[0])],
+                "Last Theme": [str(lastSelectedTheme[0])],
                 "Last Algorithm": [int(self.genAlgorithms.currentIndex())]
             })
         with open(config_file, mode='w+', encoding='utf-8') as file:
@@ -969,30 +1030,35 @@ class mainwindowUI(QMainWindow):
 
     def exportFiles(self, comboExport, labelStatus, buttonName, file_name, audio_file, info_notes, info_note_types, info_duration_per_note):
         fileName = file_name.replace('.mp3', '')
-        default_dir = compile_folder
-        default_filename = os.path.join(default_dir, fileName)
-        if comboExport.currentText() == 'Audio (.mp3)':
-            directoryAndFile, _ = QFileDialog.getSaveFileName( self, "Save audio file", default_filename, "Audio Files (*.mp3)")
-            if directoryAndFile:
-                self.setCursor(Qt.BusyCursor)
-                threading.Thread(target=self.exportFilesThread, args=(comboExport, labelStatus, buttonName,
-                                                              directoryAndFile, audio_file, info_notes, info_note_types, info_duration_per_note,)).start()
+        default_filename = compile_folder + fileName
+        if comboExport.currentText() == 'Audio':
+            directoryAndFile, extension = QFileDialog.getSaveFileName(self, "Save audio file", default_filename, f"mp3 (*.mp3)")
+            if not directoryAndFile: return
+        if comboExport.currentText() == 'Video':
+            directoryAndFile, extension = QFileDialog.getSaveFileName(self, "Save video file", default_filename, f"mp4 (*.mp4);;.webm (*.webm)")
+            if not directoryAndFile: return
+        file_extension = extension.split('*')[-1].replace(')', '')
+        self.setCursor(Qt.BusyCursor)
+        threading.Thread(target=self.exportFilesThread, args=(comboExport, labelStatus, buttonName,
+                                                        directoryAndFile, file_extension, audio_file, info_notes, info_note_types, info_duration_per_note,)).start()
 
-    def exportFilesThread(self, comboExport, labelStatus, buttonName, file_name, audio_file, info_notes, info_note_types, info_duration_per_note):
+    def exportFilesThread(self, comboExport, labelStatus, buttonName, file_name, file_extension, audio_file, info_notes, info_note_types, info_duration_per_note):
         width = 640
         height = 360
-        if comboExport.currentText() == 'Audio (.mp3)':
+        if comboExport.currentText() == 'Audio':
+            file_name += '.mp3'
             comboExport.setCurrentIndex(0)
             labelStatus.setText('Status: Saving!')
             audio_file.export(f"{file_name}", format="mp3")
             labelStatus.setText('Status: Finished!')
-        elif comboExport.currentText() == 'Video (.mp4)':
+        elif comboExport.currentText() == 'Video':
             comboExport.setCurrentIndex(0)
             text_list_clips = []
             image_list_clip = []
             labelStatus.setText('Status: Saving!')
-
-            file_name = file_name.replace('.mp3', ' V.mp3')
+            file_name = file_name.replace('.webm', '')
+            file_name = file_name.replace('.mp4', '')
+            file_name += ' V.mp3'
             audio_file.export(f"{file_name}", format="mp3")
             labelStatus.setText('Status: Generating...')
             music = AudioFileClip(f'{file_name}')
@@ -1027,8 +1093,8 @@ class mainwindowUI(QMainWindow):
             file_name = file_name.replace(' V.mp3', '')
             labelStatus.setText('Status: Rendering...')
             # result.iterframe_callback = self.testCall(result.ifram)  # some_function(iframe, frame, number_of_frames)
-            result.write_videofile(f"{compile_folder}{file_name}.mp4", fps=30)
-            os.remove(f"{compile_folder}{file_name}.mp3")
+            result.write_videofile(f"{file_name}{file_extension}", fps=30)
+            os.remove(f"{file_name} V.mp3")
             labelStatus.setText('Status: Finished!')
         self.unsetCursor()
 
@@ -1053,7 +1119,7 @@ class mainwindowUI(QMainWindow):
         self.reload_config_file()
 
     def open_settings_window(self):
-        self.settingsUI = settingsUI()
+        self.settingsUI = settingsUI(self)
         self.settingsUI.show()
 
     def open_about_window(self):
@@ -1065,8 +1131,11 @@ class mainwindowUI(QMainWindow):
     def open_license_window(self):
         self.licenseUI = licensewindowUI()
         self.licenseUI.show()
+
     def reload_config_file(self):
-        load_config_file(DefaultMode, DarkMode, LightMode, CSSOn, lastSelectedGenre, lastSelectedAlgorithm)
+        load_config_file(DefaultMode, DarkMode, LightMode, CSSOn, lastSelectedGenre, lastSelectedAlgorithm, lastSelectedTheme)
+
+
 class licensewindowUI(QDialog):
 
     def __init__(self):
@@ -1084,38 +1153,47 @@ class licensewindowUI(QDialog):
         with open('LICENSE', 'r') as f:
             self.lisenceText.setText(f.read())
         self.btnClose = self.findChild(QPushButton, 'btnClose')
-        self.btnClose.setIcon(self.style().standardIcon(
-            getattr(QStyle, 'SP_DialogOkButton')))
+        if current_platform == 'Linux':
+            self.btnClose.setIcon(self.style().standardIcon(
+                getattr(QStyle, 'SP_DialogOkButton')))
         self.btnClose.clicked.connect(self.close)
         self.setFixedSize(780, 470)
 
 
 class settingsUI(QWidget):
 
-    def __init__(self):
+    def __init__(self, mainwindow):
         super(settingsUI, self).__init__()
         uic.loadUi(UI_folder + 'settings.ui', self)
+        self.mainwindow = mainwindow
         self.center()
-        self.setFixedSize(256, 200)
+        self.setFixedSize(270, 340)
+        self.setWindowIcon(QIcon("icon.png"))
         self.Default = self.findChild(QRadioButton, 'radDefault')
-        self.Default.toggled.connect(lambda: self.RadClicked(self.Default))
+        self.Default.toggled.connect(self.RadClicked)
         self.Dark = self.findChild(QRadioButton, 'radDark')
-        self.Dark.toggled.connect(lambda: self.RadClicked(self.Dark))
+        self.Dark.toggled.connect(self.RadClicked)
         self.Light = self.findChild(QRadioButton, 'radLight')
-        self.Light.toggled.connect(lambda: self.RadClicked(self.Light))
+        self.Light.toggled.connect(self.RadClicked)
         self.CSS = self.findChild(QCheckBox, 'customeCSS')
         self.CSS.setChecked(True if CSSOn[0] == 'True' else False)
-        self.CSS.toggled.connect(lambda: self.RadClicked(self.CSS))
-        self.CSS.setHidden(True)
+        self.CSS.toggled.connect(self.RadClicked)
 
-        self.btnApply = self.findChild(QPushButton, 'btnApply')
-        self.btnApply.clicked.connect(self.close)
-
+        self.styles = ['Breeze', 'Fusion', 'qdarkgraystyle', 'qdarkstyle']
+        self.comboBoxStyles = self.findChild(QComboBox, 'comboBoxStyles')
+        self.comboBoxStyles.addItems(self.styles)
         self.Default.setChecked(True if DefaultMode[0] == 'True' else False)
         self.Dark.setChecked(True if DarkMode[0] == 'True' else False)
         self.Light.setChecked(True if LightMode[0] == 'True' else False)
+        self.comboBoxStyles.currentIndexChanged.connect(self.ComboClicked)
+        for index, style in enumerate(self.styles):
+            if lastSelectedTheme[0] == style:
+                self.comboBoxStyles.setCurrentIndex(index)
+        
+        self.btnApply = self.findChild(QPushButton, 'btnApply')
+        self.btnApply.clicked.connect(self.close)
 
-    def RadClicked(self, state):
+    def RadClicked(self):
         config_json.pop(0)
         config_json.append(
             {
@@ -1124,49 +1202,95 @@ class settingsUI(QWidget):
                 "Light": [str(self.Light.isChecked())],
                 "CSS": [str(self.CSS.isChecked())],
                 "Last Genre": [int(lastSelectedGenre[0])],
+                "Last Theme": [str(lastSelectedTheme[0])],
                 "Last Algorithm": [int(lastSelectedAlgorithm[0])]
             })
         with open(config_file, mode='w+', encoding='utf-8') as file:
             json.dump(config_json, file, ensure_ascii=True, indent=4)
-        self.reload_config_file()
-        if CSSOn[0] == 'True':
-            self.setStyleSheet(open("style.qss", "r").read())
+        load_config_file(DefaultMode, DarkMode, LightMode, CSSOn, lastSelectedGenre, lastSelectedAlgorithm, lastSelectedTheme)
+        self.load_theme()
+
+    def ComboClicked(self):
+        if self.comboBoxStyles.currentText() == 'qdarkgraystyle' or self.comboBoxStyles.currentText() == 'qdarkstyle':
+            self.Dark.setChecked(True)
+            self.Light.setEnabled(False)
+        else:
+            self.Light.setEnabled(True)
+        config_json.pop(0)
+        config_json.append(
+            {
+                "Default": [str(DefaultMode[0])],
+                "Dark": [str(DarkMode[0])],
+                "Light": [str(LightMode[0])],
+                "CSS": [str(CSSOn[0])],
+                "Last Genre": [int(lastSelectedGenre[0])],
+                "Last Theme": [str(self.comboBoxStyles.currentText())],
+                "Last Algorithm": [int(lastSelectedAlgorithm[0])]
+            })
+        with open(config_file, mode='w+', encoding='utf-8') as file:
+            json.dump(config_json, file, ensure_ascii=True, indent=4)
+        load_config_file(DefaultMode, DarkMode, LightMode, CSSOn, lastSelectedGenre, lastSelectedAlgorithm, lastSelectedTheme)
+        self.load_theme()
+
+    def load_theme(self):
+        QApplication.setPalette(QApplication.palette())
+        if CSSOn[0] == 'True': self.mainwindow.setStyleSheet(open(themes_folder + "style.qss", "r").read())
+        else: self.mainwindow.setStyleSheet('')
         if DefaultMode[0] == 'True':
+            if current_platform == 'Windows': app.setStyle('Windowsvista')
+            elif current_platform == 'Linux': app.setStyle('Fusion')
             QApplication.setPalette(originalPalette)
-            if current_platform == 'Windows':
-                app.setStyle('Windowsvista')
-            elif current_platform == 'Linux':
-                app.setStyle('Fusion')
+            app.setStyleSheet('')
         if LightMode[0] == 'True':
-            app.setPalette(QApplication.style().standardPalette())
-            palette = QPalette()
-            gradient = QLinearGradient(0, 0, 0, 400)
-            gradient.setColorAt(0.0, QColor(240, 240, 240))
-            gradient.setColorAt(1.0, QColor(215, 215, 215))
-            palette.setColor(QPalette.ButtonText, Qt.black)
-            palette.setBrush(QPalette.Window, QBrush(gradient))
-            app.setPalette(palette)
-            app.setStyle('Fusion')
+            if lastSelectedTheme[0] == 'Fusion' or lastSelectedTheme[0] == 'windowsvista':
+                app.setPalette(QApplication.style().standardPalette())
+                palette = QPalette()
+                gradient = QLinearGradient(0, 0, 0, 400)
+                gradient.setColorAt(0.0, QColor(240, 240, 240))
+                gradient.setColorAt(1.0, QColor(215, 215, 215))
+                palette.setColor(QPalette.ButtonText, Qt.black)
+                palette.setBrush(QPalette.Window, QBrush(gradient))
+                app.setPalette(palette)
+                app.setStyle(lastSelectedTheme[0])
+                app.setStyleSheet('')
+            elif lastSelectedTheme[0] == 'Breeze':
+                file = QFile(themes_folder + 'Breeze/light.qss')
+                file.open(QFile.ReadOnly | QFile.Text)
+                stream = QTextStream(file)
+                app.setStyleSheet(stream.readAll())
         if DarkMode[0] == 'True':
-            palette = QPalette()
-            gradient = QLinearGradient(0, 0, 0, 400)
-            gradient.setColorAt(0.0, QColor(40, 40, 40))
-            gradient.setColorAt(1.0, QColor(30, 30, 30))
-            palette.setBrush(QPalette.Window, QBrush(gradient))
-            palette.setColor(QPalette.WindowText, Qt.white)
-            palette.setColor(QPalette.Base, QColor(25, 25, 25))
-            palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
-            palette.setColor(QPalette.ToolTipBase, Qt.black)
-            palette.setColor(QPalette.ToolTipText, Qt.white)
-            palette.setColor(QPalette.Text, Qt.white)
-            palette.setColor(QPalette.Button, QColor(30, 30, 30))
-            palette.setColor(QPalette.ButtonText, Qt.white)
-            palette.setColor(QPalette.BrightText, Qt.red)
-            palette.setColor(QPalette.Link, QColor(42, 130, 218))
-            palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
-            palette.setColor(QPalette.HighlightedText, Qt.black)
-            app.setPalette(palette)
-            app.setStyle('Fusion')
+            if lastSelectedTheme[0] == 'Fusion' or lastSelectedTheme[0] == 'windowsvista':
+                palette = QPalette()
+                gradient = QLinearGradient(0, 0, 0, 400)
+                gradient.setColorAt(0.0, QColor(40, 40, 40))
+                gradient.setColorAt(1.0, QColor(30, 30, 30))
+                palette.setBrush(QPalette.Window, QBrush(gradient))
+                palette.setColor(QPalette.WindowText, Qt.white)
+                palette.setColor(QPalette.Base, QColor(25, 25, 25))
+                palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
+                palette.setColor(QPalette.ToolTipBase, Qt.black)
+                palette.setColor(QPalette.ToolTipText, Qt.white)
+                palette.setColor(QPalette.Text, Qt.white)
+                palette.setColor(QPalette.Button, QColor(30, 30, 30))
+                palette.setColor(QPalette.ButtonText, Qt.white)
+                palette.setColor(QPalette.BrightText, Qt.red)
+                palette.setColor(QPalette.Link, QColor(42, 130, 218))
+                palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
+                palette.setColor(QPalette.HighlightedText, Qt.black)
+                app.setPalette(palette)
+                app.setStyle(lastSelectedTheme[0])
+                app.setStyleSheet('')
+            elif lastSelectedTheme[0] == 'Breeze':
+                file = QFile(themes_folder + 'Breeze/dark.qss')
+                file.open(QFile.ReadOnly | QFile.Text)
+                stream = QTextStream(file)
+                app.setStyleSheet(stream.readAll())
+            elif lastSelectedTheme[0] == 'qdarkstyle':
+                QApplication.setPalette(originalPalette)
+                app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
+            elif lastSelectedTheme[0] == 'qdarkgraystyle':
+                QApplication.setPalette(originalPalette)
+                app.setStyleSheet(qdarkgraystyle.load_stylesheet())
 
     def center(self):
         frameGm = self.frameGeometry()
@@ -1177,21 +1301,19 @@ class settingsUI(QWidget):
         self.move(frameGm.topLeft())
 
     def closeEvent(self, event):
-        # self.mainMenu = mainwindowUI()
-        # self.mainMenu.show()
         self.close()
 
 
 alphabetList = list(ascii_lowercase) + list(ascii_uppercase)
 alphabetValList = list(i + 1 for i in range(len(alphabetList)))
 
-piano_samples = os.path.dirname(
-    os.path.realpath(__file__)) + '/Piano Samples/'
+piano_samples = os.path.dirname(os.path.realpath(__file__)) + '/Piano Samples/'
 image_folder = os.path.dirname(os.path.realpath(__file__)) + '/Images/'
 compile_folder = os.path.dirname(os.path.realpath(__file__)) + '/Music/'
+themes_folder = os.path.dirname(os.path.realpath(__file__)) + '/Themes/'
 genres_folder = os.path.dirname(os.path.realpath(__file__)) + '/Genres/'
 UI_folder = os.path.dirname(
-    os.path.realpath(__file__)) + '/Music_Generator/'
+    os.path.realpath(__file__)) + '/GUI/'
 
 if current_platform == 'Windows':
     UI_folder = UI_folder.replace('/', '\\')
@@ -1199,9 +1321,10 @@ if current_platform == 'Windows':
     image_folder = image_folder.replace('/', '\\')
     compile_folder = compile_folder.replace('/', '\\')
     genres_folder = genres_folder.replace('/', '\\')
+    themes_folder = themes_folder.replace('/', '\\')
 
-if not os.path.exists(compile_folder):
-    os.mkdir(compile_folder)
+if not os.path.exists(compile_folder): os.mkdir(compile_folder)
+if not os.path.exists(genres_folder): os.mkdir(genres_folder)
 all_genre_files = [f for f in glob.glob(
     genres_folder + "**/*.json", recursive=True)]
 try:
@@ -1213,7 +1336,7 @@ config_file = os.path.dirname(os.path.realpath(__file__)) + '/config.json'
 if not os.path.exists(config_file):
     with open(config_file, 'w+') as f:
         f.write(
-            '[{"Default": ["True"],"Dark": ["False"],"Light": ["False"],"CSS": ["True"], "Last Genre": [0], "Last Algorithm": [0]}]')
+            '[{"Default": ["True"],"Dark": ["False"],"Light": ["False"],"CSS": ["True"], "Last Genre": [0], "Last Algorithm": [0], "Last Theme": ["Fusion"]}]')
 note_types = {
     'Semibreve': 1,  # semibreve
     'Minim': 2,  # minim
@@ -1253,8 +1376,8 @@ LightMode = []
 CSSOn = []
 
 lastSelectedGenre = []
+lastSelectedTheme = []
 lastSelectedAlgorithm = []
-
 originalPalette = None
 name = []
 config_json = []
@@ -1280,13 +1403,15 @@ def load_config_file(*args):
                 args[4].append(g)
             for al in config_json[0]['Last Algorithm']:
                 args[5].append(al)
+            for th in config_json[0]['Last Theme']:
+                args[6].append(th)
 
 
 def exit_handler(): sys.exit()
 
 
 if __name__ == '__main__':
-    load_config_file(DefaultMode, DarkMode, LightMode, CSSOn, lastSelectedGenre, lastSelectedAlgorithm)
+    load_config_file(DefaultMode, DarkMode, LightMode, CSSOn, lastSelectedGenre, lastSelectedAlgorithm, lastSelectedTheme)
     atexit.register(exit_handler)
     app = QApplication(sys.argv)
     window = mainwindowUI()
