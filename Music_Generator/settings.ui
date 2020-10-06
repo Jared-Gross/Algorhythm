@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>265</width>
-    <height>235</height>
+    <width>324</width>
+    <height>345</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,15 +17,45 @@
    <item row="0" column="0">
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
-      <string>Theme</string>
+      <string>Prefrences</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_4">
       <item row="0" column="0">
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Style:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="comboBoxStyles">
+          <property name="font">
+           <font>
+            <pointsize>13</pointsize>
+           </font>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Scheme</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QRadioButton" name="radDefault">
           <property name="text">
-           <string>Default</string>
+           <string>System Default</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="Line" name="line">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
           </property>
          </widget>
         </item>
@@ -46,7 +76,7 @@
         <item>
          <widget class="QCheckBox" name="customeCSS">
           <property name="text">
-           <string>CSS</string>
+           <string>Colored Notes</string>
           </property>
          </widget>
         </item>
