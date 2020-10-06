@@ -57,3 +57,7 @@
   - Possible needs a longer fade, or better quality sounds.
 - [x] Fix `Step` Algorithm.
 - [x] Fix crashes with `QThread`
+
+##Credits
+[Breeze](https://github.com/Alexhuszagh/BreezeStyleSheets)
+Full credit goes to: [Alexhuszagh](https://github.com/Alexhuszagh)
