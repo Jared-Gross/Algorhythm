@@ -9,7 +9,10 @@ current_platform = 'Linux' if sys.platform == "linux" or sys.platform == "linux2
 # pip install pydub
 from pydub import AudioSegment
 from pydub.playback import play
+
 # Video Imports
+# Possible .exe build errors
+# https://stackoverflow.com/questions/44615249/attributeerror-module-object-has-no-attribute-audio-fadein
 # pip install moviepy
 # from moviepy.editor import *
 from moviepy.video.io.VideoFileClip import VideoFileClip
