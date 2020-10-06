@@ -1,7 +1,8 @@
 #!/usr/bin python3
 # You should also check the file have the right to be execute. chmod +x main.py
-
+# pip install pywin32-ctypes
 import sys
+import win32com
 current_platform = 'Linux' if sys.platform == "linux" or sys.platform == "linux2" else 'Windows'
 
 # Audio Imports
@@ -10,7 +11,8 @@ from pydub import AudioSegment
 from pydub.playback import play
 # Video Imports
 # pip install moviepy
-from moviepy.editor import *
+# from moviepy.editor import *
+from moviepy.video.io.VideoFileClip import VideoFileClip
 '''
 NOTE make sure you have it installed properly
 pip install Wand
@@ -84,7 +86,7 @@ pip install -r requirements.txt
 #                     year, month, day, hour, minute, second
 #                               y   m   d  h   m  s
 latest_update_date = datetime(2020, 10, 5, 11, 1, 23)
-latest_update_date_formated = latest_update_date.strftime("%A %d %B %Y %I:%M:%S%p")
+latest_update_date_formated = latest_update_date.strftime("%A %B %d %Y at %X%p")
 
 company = 'TheCodingJs'
 title = 'Algorhythm'
@@ -212,6 +214,9 @@ class GenerateThread(QThread):
                         final_song = note if not final_song else final_song + note
                         if i == len(step_available_notes):
                             step_keys, step_note_keys = self.getStepNumberList()
+                        
+                        self.generated.emit('Status: Generating...', (final_song.duration_seconds / self.seconds * 100),
+                                            self.progressBar, self.buttonName, self.buttonPlay, self.buttonDelete, self.labelStatus, self.comboExport, final_name, final_song, self.info_notes, self.info_note_types, self.info_duration_per_note)
                 elif self.algorithmName == 'Alphabet':
                     alpha_keys = []
                     alpha_note_keys = []
@@ -598,7 +603,7 @@ class mainwindowUI(QMainWindow):
                     self.btnNote, i / colSize, i % colSize)
             for i, j in enumerate(note_types):
                 self.btnNoteType = QPushButton()
-                self.btnNoteType.setFixedSize(64, 64)
+                self.btnNoteType.setFixedSize(72, 72)
                 self.btnNoteType.setToolTip(j)
                 self.btnNoteType.setCheckable(True)
                 self.btnNoteType.setChecked(
@@ -661,8 +666,10 @@ class mainwindowUI(QMainWindow):
             os.remove(f'{compile_folder}{file_name}')
         except PermissionError as e:
             self.OpenErrorDialog('Permission Denied', e)
+            return
         except FileNotFoundError as e:
             self.OpenErrorDialog('File Not Found', e)
+            return
 
     def playNote(self, i):
         try:
@@ -671,13 +678,10 @@ class mainwindowUI(QMainWindow):
             play(note)
         except PermissionError as e:
             self.OpenErrorDialog('Permission Denied', e)
+            return
         except FileNotFoundError as e:
             self.OpenErrorDialog('File Not Found', e)
-
-    def threadPlayNote(self, i):
-        note = AudioSegment.from_mp3(
-            f"{piano_samples}{keys_json[0]['keys'][i]}.mp3")
-        play(note)
+            return
 
     @pyqtSlot(str)
     def OpenErrorDialog(self, title, text):
@@ -698,7 +702,8 @@ class mainwindowUI(QMainWindow):
                     if note_type_states[i] == 'True':
                         all_available_note_types.append(note_types[note])
         except:
-            ret = QMessageBox.warning(self, 'No genre files', "Must create a genere file to generate music.\n\nWould you like to create a genre?", QMessageBox.Yes | 
+            ret = QMessageBox.warning(self, 'No genre files', "Must create a genere file to generate music.\n\nWould you like to create a genre?", 
+                                      QMessageBox.Yes | 
                                       QMessageBox.No | QMessageBox.Cancel, QMessageBox.Cancel)
             if ret == QMessageBox.Yes:
                 self.createGenere()
@@ -793,8 +798,6 @@ class mainwindowUI(QMainWindow):
                 if os.path.isfile(path) or os.path.islink(path):
                     os.remove(path)  # remove the file
                     self.delete_how_many_files += 1
-                elif os.path.isdir(path):
-                    shutil.rmtree(path)  # remove dir and all contains
                 path = path.replace('.mp3', '.mp4')
             if not self.delete_how_many_files == 0 and final:
                 grammerFix = 'file' if self.delete_how_many_files == 1 else 'files'
@@ -830,8 +833,7 @@ class mainwindowUI(QMainWindow):
         text, okPressed = QInputDialog.getText(
             self, "Name", "Enter Genre name:", QLineEdit.Normal, "")
         if okPressed and text != '':
-            if not text.endswith('.json'):
-                file_name = self.genres_folder + text + '.json'
+            if not text.endswith('.json'): file_name = self.genres_folder + text + '.json'
             with open(file_name, 'w+') as f:
                 textToWrite = '[{"Name":["' + text + '"],"Notes":[{"C1":["True"],"C#1":["True"],"D1":["True"],"Eb1":["True"],"E1":["True"],"F1":["True"],"F#1":["True"],"G1":["True"],"Ab1":["True"],"A1":["True"],"Bb1":["True"],"B1":["True"],"C2":["True"],"C#2":["True"],"D2":["True"],"Eb2":["True"],"E2":["True"],"F2":["True"],"F#2":["True"],"G2":["True"],"Ab2":["True"],"A2":["True"],"Bb2":["True"],"B2":["True"],"C3":["True"],"C#3":["True"],"D3":["True"],"Eb3":["True"],"E3":["True"],"F3":["True"],"F#3":["True"],"G3":["True"],"Ab3":["True"],"A3":["True"],"Bb3":["True"],"B3":["True"],"C4":["True"],"C#4":["True"],"D4":["True"],"Eb4":["True"],"E4":["True"],"F4":["True"],"F#4":["True"],"G4":["True"],"Ab4":["True"],"A4":["True"],"Bb4":["True"],"B4":["True"],"C5":["True"],"C#5":["True"],"D5":["True"],"Eb5":["True"],"E5":["True"],"F5":["True"],"F#5":["True"],"G5":["True"],"Ab5":["True"],"A5":["True"],"Bb5":["True"],"B5":["True"],"C6":["True"]}],"Note Types":[{"Semibreve":["True"],"Minim":["True"],"Crochet":["True"],"Quaver":["True"],"Semiquaver":["True"],"Demisemiquaver":["True"]}]}]'
                 f.write(textToWrite)
@@ -840,10 +842,9 @@ class mainwindowUI(QMainWindow):
         self.updateNotes()
 
     def deleteGenere(self):
-        item, ok = QInputDialog().getItem(self, "Select one to delete.",
+        text, okPressed = QInputDialog().getItem(self, "Select one to delete.",
                                           "Generes:", genre_names, 0, False)
-        if ok:
-            text = item
+        if okPressed:
             for i in self.all_genre_files:
                 i = i.replace(self.genres_folder, '')
                 i = i.replace('.json', '')
@@ -870,7 +871,6 @@ class mainwindowUI(QMainWindow):
                 index += 1
             self.genresComboBox.addItems(self.genre_names)
         except IndexError:
-            print('no generes')
             self.genresComboBox.addItem('')
             self.genresComboBox.addItem('Create')
             self.genresComboBox.setItemIcon(
@@ -899,7 +899,6 @@ class mainwindowUI(QMainWindow):
         note_states.clear()
         note_type_states.clear()
         try:
-
             config_json.pop(0)
             config_json.append(
                 {
@@ -912,10 +911,9 @@ class mainwindowUI(QMainWindow):
                     "Last Algorithm": [int(lastSelectedAlgorithm[0])]
                 })
             with open(config_file, mode='w+', encoding='utf-8') as file:
-                json.dump(config_json, file, ensure_ascii=True, indent=4)
+                json.dump(config_json, file, ensure_ascii=True)
             self.reload_config_file()
-            genres_file = self.all_genre_files[self.genresComboBox.currentIndex(
-            )]
+            genres_file = self.all_genre_files[self.genresComboBox.currentIndex()]
             with open(genres_file) as file:
                 genres_json = json.load(file)
                 for i, noteState in enumerate(genres_json[0]['Notes']):
@@ -924,11 +922,8 @@ class mainwindowUI(QMainWindow):
                 for i, noteState in enumerate(genres_json[0]['Note Types']):
                     for j, k in enumerate(note_types):
                         note_type_states.append(noteState[str(k)][0])
-        except FileNotFoundError as e:
-            # self.OpenErrorDialog('File not found', e)
-            print('file not found')
-        except IndexError:
-            print('no generes')
+        except FileNotFoundError: pass
+        except IndexError: pass
         self.clearLayout(self.NoteGridLayout)
         self.clearLayout(self.NoteTypeGridLayout)
         self.UINotes()
@@ -936,14 +931,12 @@ class mainwindowUI(QMainWindow):
     def checkAlgorithm(self):
         if self.genAlgorithms.currentText() == 'Alphabet':
             self.alphabetText.setHidden(False)
-            for label in self.miscLabels:
-                label.setHidden(True)
+            [img.setHidden(True) for img in self.miscLabels]
             self.inputSongLength.setHidden(True)
             self.lblInputSongLength.setHidden(True)
         else:
             self.alphabetText.setHidden(True)
-            for label in self.miscLabels:
-                label.setHidden(False)
+            [img.setHidden(False) for img in self.miscLabels]
             self.inputSongLength.setHidden(False)
             self.lblInputSongLength.setHidden(True)
 
@@ -959,7 +952,7 @@ class mainwindowUI(QMainWindow):
                 "Last Algorithm": [int(self.genAlgorithms.currentIndex())]
             })
         with open(config_file, mode='w+', encoding='utf-8') as file:
-            json.dump(config_json, file, ensure_ascii=True, indent=4)
+            json.dump(config_json, file, ensure_ascii=True)
         self.reload_config_file()
 
     def clearLayout(self, layout):
@@ -1031,22 +1024,25 @@ class mainwindowUI(QMainWindow):
     def exportFiles(self, comboExport, labelStatus, buttonName, file_name, audio_file, info_notes, info_note_types, info_duration_per_note):
         fileName = file_name.replace('.mp3', '')
         default_filename = compile_folder + fileName
+        directoryAndFile = ''
+        extension = ''
+        
         if comboExport.currentText() == 'Audio':
             directoryAndFile, extension = QFileDialog.getSaveFileName(self, "Save audio file", default_filename, f"mp3 (*.mp3)")
-            if not directoryAndFile: return
-        if comboExport.currentText() == 'Video':
+            if not directoryAndFile or not extension: comboExport.setCurrentIndex(0); return
+        elif comboExport.currentText() == 'Video':
             directoryAndFile, extension = QFileDialog.getSaveFileName(self, "Save video file", default_filename, f"mp4 (*.mp4);;.webm (*.webm)")
-            if not directoryAndFile: return
+            if not directoryAndFile or not extension: comboExport.setCurrentIndex(0); return
         file_extension = extension.split('*')[-1].replace(')', '')
         self.setCursor(Qt.BusyCursor)
         threading.Thread(target=self.exportFilesThread, args=(comboExport, labelStatus, buttonName,
-                                                        directoryAndFile, file_extension, audio_file, info_notes, info_note_types, info_duration_per_note,)).start()
+                                                        directoryAndFile, file_extension, audio_file, 
+                                                        info_notes, info_note_types, info_duration_per_note,)).start()
 
     def exportFilesThread(self, comboExport, labelStatus, buttonName, file_name, file_extension, audio_file, info_notes, info_note_types, info_duration_per_note):
         width = 640
         height = 360
         if comboExport.currentText() == 'Audio':
-            file_name += '.mp3'
             comboExport.setCurrentIndex(0)
             labelStatus.setText('Status: Saving!')
             audio_file.export(f"{file_name}", format="mp3")
@@ -1075,8 +1071,6 @@ class mainwindowUI(QMainWindow):
                 img_clip = img_clip.resize(width=128, height=128).on_color(size=(width, height), color=(0, 0, 0), pos=(
                     310, 50), col_opacity=0).set_duration(info_duration_per_note[i]).crossfadeout(info_duration_per_note[i])
                 image_list_clip.append(img_clip)
-
-            # background_clip = ImageClip(f'{image_folder}blank.jpg')
             background_clip = ColorClip(
                 size=(width, height), color=[255, 255, 255])
             background_clip = background_clip.set_duration(
@@ -1092,7 +1086,7 @@ class mainwindowUI(QMainWindow):
             result = result.set_audio(music)
             file_name = file_name.replace(' V.mp3', '')
             labelStatus.setText('Status: Rendering...')
-            # result.iterframe_callback = self.testCall(result.ifram)  # some_function(iframe, frame, number_of_frames)
+            # result.iterframe_callback = self.testCall(result.iframe, result.frame, result.number_of_frames)  # some_function(iframe, frame, number_of_frames)
             result.write_videofile(f"{file_name}{file_extension}", fps=30)
             os.remove(f"{file_name} V.mp3")
             labelStatus.setText('Status: Finished!')
@@ -1103,8 +1097,7 @@ class mainwindowUI(QMainWindow):
 
     def get_key(self, val):
         for key, value in note_types.items():
-            if val == value:
-                return key
+            if val == value: return key
 
     def generate_song(self, algorithmName, progressBar, buttonName, buttonPlay, buttonDelete, labelStatus, comboExport):
         self.setCursor(Qt.BusyCursor)
@@ -1187,8 +1180,7 @@ class settingsUI(QWidget):
         self.Light.setChecked(True if LightMode[0] == 'True' else False)
         self.comboBoxStyles.currentIndexChanged.connect(self.ComboClicked)
         for index, style in enumerate(self.styles):
-            if lastSelectedTheme[0] == style:
-                self.comboBoxStyles.setCurrentIndex(index)
+            if lastSelectedTheme[0] == style: self.comboBoxStyles.setCurrentIndex(index)
         
         self.btnApply = self.findChild(QPushButton, 'btnApply')
         self.btnApply.clicked.connect(self.close)
@@ -1206,13 +1198,14 @@ class settingsUI(QWidget):
                 "Last Algorithm": [int(lastSelectedAlgorithm[0])]
             })
         with open(config_file, mode='w+', encoding='utf-8') as file:
-            json.dump(config_json, file, ensure_ascii=True, indent=4)
+            json.dump(config_json, file, ensure_ascii=True)
         load_config_file(DefaultMode, DarkMode, LightMode, CSSOn, lastSelectedGenre, lastSelectedAlgorithm, lastSelectedTheme)
         self.load_theme()
 
     def ComboClicked(self):
         if self.comboBoxStyles.currentText() == 'qdarkgraystyle' or self.comboBoxStyles.currentText() == 'qdarkstyle':
-            self.Dark.setChecked(True)
+            if not self.Default.isChecked():
+                self.Dark.setChecked(True)
             self.Light.setEnabled(False)
         else:
             self.Light.setEnabled(True)
@@ -1228,7 +1221,7 @@ class settingsUI(QWidget):
                 "Last Algorithm": [int(lastSelectedAlgorithm[0])]
             })
         with open(config_file, mode='w+', encoding='utf-8') as file:
-            json.dump(config_json, file, ensure_ascii=True, indent=4)
+            json.dump(config_json, file, ensure_ascii=True)
         load_config_file(DefaultMode, DarkMode, LightMode, CSSOn, lastSelectedGenre, lastSelectedAlgorithm, lastSelectedTheme)
         self.load_theme()
 
@@ -1312,8 +1305,7 @@ image_folder = os.path.dirname(os.path.realpath(__file__)) + '/Images/'
 compile_folder = os.path.dirname(os.path.realpath(__file__)) + '/Music/'
 themes_folder = os.path.dirname(os.path.realpath(__file__)) + '/Themes/'
 genres_folder = os.path.dirname(os.path.realpath(__file__)) + '/Genres/'
-UI_folder = os.path.dirname(
-    os.path.realpath(__file__)) + '/GUI/'
+UI_folder = os.path.dirname(os.path.realpath(__file__)) + '/GUI/'
 
 if current_platform == 'Windows':
     UI_folder = UI_folder.replace('/', '\\')
@@ -1355,8 +1347,7 @@ for i in all_genre_files:
     i = i.replace(genres_folder, '')
     i = i.replace('.json', '')
     genre_names.append(i)
-with open(keys_file) as file:
-    keys_json = json.load(file)
+with open(keys_file) as file: keys_json = json.load(file)
 try:
     with open(genres_file) as file:
         genres_json = json.load(file)
@@ -1366,23 +1357,20 @@ try:
         for i, noteState in enumerate(genres_json[0]['Note Types']):
             for j, k in enumerate(note_types):
                 note_type_states.append(noteState[str(k)][0])
-except:
-    print('no generes')
+except: pass
 
 # CONFIG JSON
 DefaultMode = []
 DarkMode = []
 LightMode = []
 CSSOn = []
-
 lastSelectedGenre = []
 lastSelectedTheme = []
 lastSelectedAlgorithm = []
-originalPalette = None
-name = []
-config_json = []
 
-started = False
+
+originalPalette = None
+config_json = []
 
 
 def load_config_file(*args):
@@ -1391,20 +1379,13 @@ def load_config_file(*args):
         j.clear()
         with open(config_file) as file:
             config_json = json.load(file)
-            for d in config_json[0]['Default']:
-                args[0].append(d)
-            for da in config_json[0]['Dark']:
-                args[1].append(da)
-            for l in config_json[0]['Light']:
-                args[2].append(l)
-            for c in config_json[0]['CSS']:
-                args[3].append(c)
-            for g in config_json[0]['Last Genre']:
-                args[4].append(g)
-            for al in config_json[0]['Last Algorithm']:
-                args[5].append(al)
-            for th in config_json[0]['Last Theme']:
-                args[6].append(th)
+            for d in config_json[0]['Default']: args[0].append(d)
+            for da in config_json[0]['Dark']: args[1].append(da)
+            for l in config_json[0]['Light']: args[2].append(l)
+            for c in config_json[0]['CSS']: args[3].append(c)
+            for g in config_json[0]['Last Genre']: args[4].append(g)
+            for al in config_json[0]['Last Algorithm']: args[5].append(al)
+            for th in config_json[0]['Last Theme']: args[6].append(th)
 
 
 def exit_handler(): sys.exit()
