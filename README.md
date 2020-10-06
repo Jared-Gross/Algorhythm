@@ -1,6 +1,6 @@
 <p align="center"><img src="https://github.com/JareBear12418/Algorythm/blob/master/icon.png" /></p>
 
-[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 # Algorhythm
 - Generate music algorithmically at the click of a button.
