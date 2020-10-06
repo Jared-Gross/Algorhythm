@@ -59,6 +59,11 @@
 - [x] Fix crashes with `QThread`
 
 ## Credits
-[Breeze](https://github.com/Alexhuszagh/BreezeStyleSheets)
+[QDarkStyleSheet](https://github.com/ColinDuquesnoy/QDarkStyleSheet)
+Full credit goes to: [ColinDuquesnoy](https://github.com/ColinDuquesnoy)
 
+[qdarkgraystyle](https://github.com/mstuttgart/qdarkgraystyle)
+Full credit goes to: [mstuttgart](https://github.com/mstuttgart)
+
+[Breeze](https://github.com/Alexhuszagh/BreezeStyleSheets)
 Full credit goes to: [Alexhuszagh](https://github.com/Alexhuszagh)
