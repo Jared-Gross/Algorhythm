@@ -1,0 +1,8 @@
+notify2==0.3.1
+win10toast==0.9
+moviepy==1.0.3
+qdarkgraystyle==1.0.2
+pydub==0.24.1
+QDarkStyle==2.8.1
+PyQt5==5.15.1
+pywin32-ctypes==0.2.0
