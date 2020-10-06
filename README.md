@@ -1,4 +1,5 @@
-![Algorhythm](https://github.com/JareBear12418/Algorythm/blob/master/icon.png?raw=true "Algorhythm")
+<p align="center"><img src="https://github.com/JareBear12418/Algorythm/blob/master/icon.png" /></p>
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
 # Algorhythm
 - Generate music algorithmically at the click of a button.
 
@@ -68,23 +69,3 @@ Full credit goes to: [mstuttgart](https://github.com/mstuttgart)
 [Breeze](https://github.com/Alexhuszagh/BreezeStyleSheets)
 Full credit goes to: [Alexhuszagh](https://github.com/Alexhuszagh)
 
-name: Codecov
-on:
-  push:
-    branches:
-      - master
-jobs:
-  build:
-    name: Run rspec to generate code coverage
-    runs-on: ubuntu-latest
-steps:
-    - uses: actions/checkout@master
-    - name: Set up Ruby 2.6
-      uses: actions/setup-ruby@v1
-      with:
-        version: 2.6.x
-- name: Run test cases
-      run: |
-        bundle exec rspec
-      env:
-        CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}
