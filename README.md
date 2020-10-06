@@ -58,6 +58,7 @@
 - [x] Fix `Step` Algorithm.
 - [x] Fix crashes with `QThread`
 
-##Credits
+## Credits
 [Breeze](https://github.com/Alexhuszagh/BreezeStyleSheets)
+
 Full credit goes to: [Alexhuszagh](https://github.com/Alexhuszagh)
