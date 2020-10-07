@@ -8,9 +8,9 @@
 
 | Features | Windows  | Linux  |
 | ------- | --- | --- |
-| Generate Audio | [X] | [X] |
-| Generate Video | [ ]  | [X] |
-| Theme support | [X]  | [X] |
+| Generate Audio | [x] | [x] |
+| Generate Video | [ ]  | [x] |
+| Theme support | [x]  | [x] |
 
 ## Installation
 ### Windows
@@ -20,12 +20,15 @@
 Download this repository!
 
 It's best practice to create a virtual enviroment with:
+
 `virtualenv [name]`
 
 then activate it with:
+
 `[name]/Scripts/activate`
 
 Install all requirements with:
+
 `pip install -r requirements.txt`
 
 Install ImageMagick with:
@@ -38,10 +41,15 @@ sudo apt-get upgrade
 ```
 If moviepy still has running properly do the following:
 go to:
+
 `/etc/ImageMagick-6/policy.xml`
+
 Near the bottom there is this line:
+
 `<!-- <policy domain="path" rights="none" pattern="@*" /> -->`
+
 comment that out or delete it.
+
 and your done, everything shoud work
 ## How it works
 - Using nothing but raw math/algorithms to generate music.
