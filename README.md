@@ -6,6 +6,43 @@
 # Algorhythm
 - Generate music algorithmically at the click of a button.
 
+| Features | Windows  | Linux  |
+| ------- | --- | --- |
+| Generate Audio | [X] | [X] |
+| Generate Video | [ ]  | [X] |
+| Theme support | [X]  | [X] |
+
+## Installation
+### Windows
+ - Not yet available
+
+### Linux
+Download this repository!
+
+It's best practice to create a virtual enviroment with:
+`virtualenv [name]`
+
+then activate it with:
+`[name]/Scripts/activate`
+
+Install all requirements with:
+`pip install -r requirements.txt`
+
+Install ImageMagick with:
+```
+sudo apt-get install python-wand
+sudo apt-get install libmagickwand-dev
+sudo apt-get install imagemagick
+sudo apt-get update
+sudo apt-get upgrade
+```
+If moviepy still has running properly do the following:
+go to:
+`/etc/ImageMagick-6/policy.xml`
+Near the bottom there is this line:
+`<!-- <policy domain="path" rights="none" pattern="@*" /> -->`
+comment that out or delete it.
+and your done, everything shoud work
 ## How it works
 - Using nothing but raw math/algorithms to generate music.
   - Simpling typing words or letters and pressing a button you can generate music:
