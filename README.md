@@ -14,7 +14,7 @@
 
 ## Installation
 ### Windows
- - Not yet available
+ - Currently in development
 
 ### Linux
 Download this repository!
