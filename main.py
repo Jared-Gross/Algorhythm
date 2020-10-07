@@ -2,9 +2,9 @@
 # You should also check the file have the right to be execute. chmod +x main.py
 # pip install pywin32-ctypes
 import sys
-import win32com
 current_platform = 'Linux' if sys.platform == "linux" or sys.platform == "linux2" else 'Windows'
 
+if current_platform == 'Windows': import win32com
 # Audio Imports
 # pip install pydub
 from pydub import AudioSegment
@@ -14,8 +14,11 @@ from pydub.playback import play
 # Possible .exe build errors
 # https://stackoverflow.com/questions/44615249/attributeerror-module-object-has-no-attribute-audio-fadein
 # pip install moviepy
-# from moviepy.editor import *
+# from moviepy.video.VideoClip import resize
 from moviepy.video.io.VideoFileClip import VideoFileClip
+from moviepy.audio.io.AudioFileClip import AudioFileClip
+from moviepy import editor
+# from moviepy.video.VideoClip import VideoClip, ImageClip, ColorClip, TextClip
 '''
 NOTE make sure you have it installed properly
 pip install Wand
@@ -69,6 +72,7 @@ if current_platform == 'Linux':
     import webbrowser as wb
     # Only works for linux
     # pip install notify2
+    # pip install dbus-python
     import notify2 as notify
 elif current_platform == 'Windows':
     import subprocess
@@ -705,7 +709,7 @@ class mainwindowUI(QMainWindow):
                     if note_type_states[i] == 'True':
                         all_available_note_types.append(note_types[note])
         except:
-            ret = QMessageBox.warning(self, 'No genre files', "Must create a genere file to generate music.\n\nWould you like to create a genre?", 
+            ret = QMessageBox.warning(self, 'No genre files', "Must create a genere file to generate music.\n\nWould you like to create a genre?",
                                       QMessageBox.Yes | 
                                       QMessageBox.No | QMessageBox.Cancel, QMessageBox.Cancel)
             if ret == QMessageBox.Yes:
@@ -1039,7 +1043,7 @@ class mainwindowUI(QMainWindow):
         file_extension = extension.split('*')[-1].replace(')', '')
         self.setCursor(Qt.BusyCursor)
         threading.Thread(target=self.exportFilesThread, args=(comboExport, labelStatus, buttonName,
-                                                        directoryAndFile, file_extension, audio_file, 
+                                                        directoryAndFile, file_extension, audio_file,
                                                         info_notes, info_note_types, info_duration_per_note,)).start()
 
     def exportFilesThread(self, comboExport, labelStatus, buttonName, file_name, file_extension, audio_file, info_notes, info_note_types, info_duration_per_note):
@@ -1063,28 +1067,28 @@ class mainwindowUI(QMainWindow):
             music = AudioFileClip(f'{file_name}')
             for i in range(len(info_notes)):
                 # https://www.reddit.com/r/moviepy/comments/4nin6q/update_imagemagik_and_moviepy_has_broken/
-                txt_clip = TextClip(
+                txt_clip = editor.TextClip(
                     f"{info_notes[i]}", fontsize=100, color='black')
                 txt_clip = txt_clip.on_color(size=(width, height), color=(0, 0, 0), pos=(
                     250, 200), col_opacity=0).set_duration(info_duration_per_note[i]).crossfadeout(info_duration_per_note[i])
                 text_list_clips.append(txt_clip)
 
-                img_clip = ImageClip(
+                img_clip = editor.ImageClip(
                     f'{image_folder}{self.get_key(info_note_types[i])}.png')
                 img_clip = img_clip.resize(width=128, height=128).on_color(size=(width, height), color=(0, 0, 0), pos=(
                     310, 50), col_opacity=0).set_duration(info_duration_per_note[i]).crossfadeout(info_duration_per_note[i])
                 image_list_clip.append(img_clip)
-            background_clip = ColorClip(
+            background_clip = editor.ColorClip(
                 size=(width, height), color=[255, 255, 255])
             background_clip = background_clip.set_duration(
                 sum(info_duration_per_note))
-            watermark_clip = txt_clip = TextClip(f"thecodingjsoftware.weebly.com", fontsize=20, color='black').on_color(size=(
+            watermark_clip = txt_clip = editor.TextClip(f"thecodingjsoftware.weebly.com", fontsize=20, color='black').on_color(size=(
                 width, height), color=(0, 0, 0), pos=(width - 350, height - 20), col_opacity=0).set_duration(sum(info_duration_per_note))
-            result_text = concatenate_videoclips(
+            result_text = editor.concatenate_videoclips(
                 [text for text in text_list_clips])
-            result_image = concatenate_videoclips(
+            result_image = editor.concatenate_videoclips(
                 [img for img in image_list_clip])
-            result = CompositeVideoClip(
+            result = editor.CompositeVideoClip(
                 [background_clip, watermark_clip, result_text, result_image, ])
             result = result.set_audio(music)
             file_name = file_name.replace(' V.mp3', '')
@@ -1370,7 +1374,6 @@ CSSOn = []
 lastSelectedGenre = []
 lastSelectedTheme = []
 lastSelectedAlgorithm = []
-
 
 originalPalette = None
 config_json = []
