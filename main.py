@@ -7,6 +7,7 @@ current_platform = 'Linux' if sys.platform == "linux" or sys.platform == "linux2
 if current_platform == 'Windows': import win32com
 # Audio Imports
 # pip install pydub
+# FOR WINDOWS YOU NEED TO pip install simpleaudio
 from pydub import AudioSegment
 from pydub.playback import play
 
