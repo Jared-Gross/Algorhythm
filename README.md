@@ -8,9 +8,9 @@
 
 | Features | Windows  | Linux  |
 | ------- | --- | --- |
-| Generate Audio | <ul><li>- [x] | <ul><li>- [x] |
-| Generate Video | <ul><li>- [ ]  | <ul><li>- [x] |
-| Theme support | <ul><li>- [x]  | <ul><li>- [x] |
+| Generate Audio | <ul><li>[x] item1</li> | <ul><li>[x] item1</li> |
+| Generate Video | <ul><li>[ ] item1</li>  | <ul><li>[x] item1</li> |
+| Theme support | <ul><li>[x] item1</li>  | <ul><li>[x] item1</li> |
 
 ## Installation
 ### Windows
