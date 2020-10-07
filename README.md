@@ -10,7 +10,7 @@
 | ------- | --- | --- |
 | Generate Audio | <ul><li>[x]</li> | <ul><li>[x]</li> |
 | Generate Video | <ul><li>[ ]</li>  | <ul><li>[x]</li> |
-| Theme support | <ul><li>[x]</li>  | <ul><li>[x]</li> |
+| Theme support | <ul><li>[x]</li>  | :heavy_exclamation_mark: |
 
 ## Installation
 ### Windows
