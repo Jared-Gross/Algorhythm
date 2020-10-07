@@ -1,8 +1,7 @@
 <p align="center"><img src="https://github.com/JareBear12418/Algorythm/blob/master/icon.png" /></p>
 
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/apm/v/Algorythm?label=Algorythm)](main.py)
-
+[![Size](https://img.shields.io/github/repo-size/JareBear12418/Algorythm?label=Size)](SIZE)
 # Algorhythm
 - Generate music algorithmically at the click of a button.
 
