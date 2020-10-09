@@ -10,25 +10,29 @@ import time
 import glob
 import json
 import os
-import qdarkgraystyle
-import qdarkstyle
+import sys
+current_platform = 'Linux' if sys.platform == "linux" or sys.platform == "linux2" else 'Windows'
+if current_platform == 'Linux':
+    try:
+        import qdarkgraystyle
+        import qdarkstyle
+        from moviepy import editor
+        from moviepy.audio.io.AudioFileClip import AudioFileClip
+        from moviepy.video.io.VideoFileClip import VideoFileClip
+        from Themes.Breeze import breeze_resources
+    except ModuleNotFoundError:
+        print('Only works for linux')
 from datetime import datetime
 from string import ascii_lowercase, ascii_uppercase
-from Themes.Breeze import breeze_resources
 from PyQt5 import uic
 from PyQt5 import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from functools import partial
-from moviepy import editor
-from moviepy.audio.io.AudioFileClip import AudioFileClip
-from moviepy.video.io.VideoFileClip import VideoFileClip
 from pydub.playback import play
 from pydub import AudioSegment
-import sys
-current_platform = 'Linux' if sys.platform == "linux" or sys.platform == "linux2" else 'Windows'
-
+import simpleaudio
 if current_platform == 'Windows':
     import win32com
 # Audio Imports
@@ -88,8 +92,10 @@ elif current_platform == 'Windows':
     import subprocess
     # only works for windows
     # pip install win10toast
-    from win10toast import ToastNotifier as notify
-
+    try:
+        from win10toast import ToastNotifier as notify
+    except ModuleNotFoundError:
+        print('module not found')
 '''
 To generate a requirements.txt file you need to:
 pip install pipreqs
@@ -843,7 +849,7 @@ class mainwindowUI(QMainWindow):
 
     def send_notification(self, header, message):
         # path to notification window icon
-        ICON_PATH = os.path.realpath(__file__) + '/icon.png'
+        ICON_PATH = os.path.realpath(__file__) + '/icon.ico'
         duration_sec = 3
         if current_platform == 'Linux':
             # initialise the d-bus connection
@@ -859,12 +865,14 @@ class mainwindowUI(QMainWindow):
             # show notification on screen
             n.show()
         elif current_platform == 'Windows':
-            # One-time initialization
-            n = notify()
-            # Show notification whenever needed
-            n.show_toast(header, message, threaded=True,
-                         icon_path=ICON_PATH, duration=duration_sec)  # 3 seconds
-
+            try:
+                # One-time initialization
+                n = notify()
+                # Show notification whenever needed
+                n.show_toast(header, message, threaded=True,
+                                icon_path=ICON_PATH, duration=duration_sec)  # 3 seconds
+            except ModuleNotFoundError:
+                print('doesnt work on windows 7')
     def createGenere(self):
         text, okPressed = QInputDialog.getText(
             self, "Name", "Enter Genre name:", QLineEdit.Normal, "")
@@ -1229,7 +1237,10 @@ class settingsUI(QWidget):
         self.CSS.setChecked(True if CSSOn[0] == 'True' else False)
         self.CSS.toggled.connect(self.RadClicked)
 
-        self.styles = ['Breeze', 'Fusion', 'qdarkgraystyle', 'qdarkstyle']
+        if current_platform == 'Linux': 
+            self.styles = ['Breeze', 'Fusion', 'qdarkgraystyle', 'qdarkstyle']
+        else: 
+            self.styles = ['Fusion']
         self.comboBoxStyles = self.findChild(QComboBox, 'comboBoxStyles')
         self.comboBoxStyles.addItems(self.styles)
         self.Default.setChecked(True if DefaultMode[0] == 'True' else False)
