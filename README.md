@@ -10,7 +10,7 @@
 | ------- | --- | --- |
 | Generate Audio | ✔️ | ✔️ |
 | Generate Video | ❌  | ✔️ |
-| Theme support | ✔️  | ✔️ |
+| Theme support | ❌  | ✔️ |
 
 ## Installation
 ### Windows
