@@ -1,24 +1,44 @@
 #!/usr/bin python3
 # You should also check the file have the right to be execute. chmod +x main.py
 # pip install pywin32-ctypes
+import ctypes
+import threading
+import traceback
+import atexit
+import random
+import time
+import glob
+import json
+import os
+import qdarkgraystyle
+import qdarkstyle
+from datetime import datetime
+from string import ascii_lowercase, ascii_uppercase
+from Themes.Breeze import breeze_resources
+from PyQt5 import uic
+from PyQt5 import *
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+from functools import partial
+from moviepy import editor
+from moviepy.audio.io.AudioFileClip import AudioFileClip
+from moviepy.video.io.VideoFileClip import VideoFileClip
+from pydub.playback import play
+from pydub import AudioSegment
 import sys
 current_platform = 'Linux' if sys.platform == "linux" or sys.platform == "linux2" else 'Windows'
 
-if current_platform == 'Windows': import win32com
+if current_platform == 'Windows':
+    import win32com
 # Audio Imports
 # pip install pydub
-# FOR WINDOWS YOU NEED TO pip install simpleaudio
-from pydub import AudioSegment
-from pydub.playback import play
 
 # Video Imports
 # Possible .exe build errors
 # https://stackoverflow.com/questions/44615249/attributeerror-module-object-has-no-attribute-audio-fadein
 # pip install moviepy
 # from moviepy.video.VideoClip import resize
-from moviepy.video.io.VideoFileClip import VideoFileClip
-from moviepy.audio.io.AudioFileClip import AudioFileClip
-from moviepy import editor
 # from moviepy.video.VideoClip import VideoClip, ImageClip, ColorClip, TextClip
 '''
 NOTE make sure you have it installed properly
@@ -43,16 +63,8 @@ https://www.reddit.com/r/moviepy/comments/4nin6q/update_imagemagik_and_moviepy_h
 
 # GUI Imports
 # pip install pyqt5
-from functools import partial
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5 import *
-from PyQt5 import uic
 
 # Themes
-import qdarkstyle, qdarkgraystyle
-from Themes.Breeze import breeze_resources
 '''
 pip install qdarkgraystyle
 https://github.com/ColinDuquesnoy/QDarkStyleSheet
@@ -65,9 +77,6 @@ https://github.com/Alexhuszagh/BreezeStyleSheets
 '''
 
 # Other
-import os, json, glob, time, random, atexit, traceback, threading, ctypes
-from string import ascii_lowercase, ascii_uppercase
-from datetime import datetime
 
 if current_platform == 'Linux':
     import webbrowser as wb
@@ -94,7 +103,8 @@ pip install -r requirements.txt
 #                     year, month, day, hour, minute, second
 #                               y   m   d  h   m  s
 latest_update_date = datetime(2020, 10, 5, 11, 1, 23)
-latest_update_date_formated = latest_update_date.strftime("%A %B %d %Y at %X%p")
+latest_update_date_formated = latest_update_date.strftime(
+    "%A %B %d %Y at %X%p")
 
 company = 'TheCodingJs'
 title = 'Algorhythm'
@@ -222,7 +232,7 @@ class GenerateThread(QThread):
                         final_song = note if not final_song else final_song + note
                         if i == len(step_available_notes):
                             step_keys, step_note_keys = self.getStepNumberList()
-                        
+
                         self.generated.emit('Status: Generating...', (final_song.duration_seconds / self.seconds * 100),
                                             self.progressBar, self.buttonName, self.buttonPlay, self.buttonDelete, self.labelStatus, self.comboExport, final_name, final_song, self.info_notes, self.info_note_types, self.info_duration_per_note)
                 elif self.algorithmName == 'Alphabet':
@@ -382,13 +392,14 @@ class mainwindowUI(QMainWindow):
         super(mainwindowUI, self).__init__()
         uic.loadUi(UI_folder + 'mainwindow.ui', self)
         self.setWindowTitle(title + ' ' + version)
-        self.setWindowIcon(QIcon(os.path.dirname(os.path.realpath(__file__)) + "/icon.png"))
+        self.setWindowIcon(QIcon(os.path.dirname(
+            os.path.realpath(__file__)) + "/icon.png"))
         if current_platform == 'Windows':
             appid = u'{}.{}.{}'.format(company, title, version)
-            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(appid)
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
+                appid)
         self.show()
         self.center()
-        self.setMinimumSize(800, 580)
         self.load_theme()
 
         self.load_VAR()
@@ -396,6 +407,7 @@ class mainwindowUI(QMainWindow):
         self.UINotes()
         self.updateNotes()
         self.checkAlgorithm()
+        self.setFixedSize(810, 590)
 
     def load_UI(self):
         self.miscLabels = []
@@ -403,9 +415,14 @@ class mainwindowUI(QMainWindow):
         self.label_7 = self.findChild(QLabel, 'label_7')
         self.miscLabels.append(self.label_7)
         self.miscLabels.append(self.label_8)
+
         self.btnGenerate = self.findChild(QPushButton, 'btnGenerate_2')
         self.btnGenerate.clicked.connect(partial(self.btnGenerateClicked))
         self.btnGenerate.setToolTip('Start generating music.')
+
+        self.generatedMusicLayout = self.findChild(
+            QFrame, 'generatedMusicLayout_2')
+        self.generatedMusicLayout.setHidden(True)
 
         self.btnDeleteAll = self.findChild(QPushButton, 'btnDeleteAll')
         self.btnDeleteAll.clicked.connect(
@@ -475,12 +492,13 @@ class mainwindowUI(QMainWindow):
         self.actionLicense = self.findChild(QAction, 'actionLicense')
         self.actionLicense.triggered.connect(self.open_license_window)
 
-        # Adding item on the menu bar 
-        # self.tray = QSystemTrayIcon() 
-        # self.tray.setIcon(QIcon(os.path.dirname(os.path.realpath(__file__)) + "/icon.png")) 
+        # Adding item on the menu bar
+        # self.tray = QSystemTrayIcon()
+        # self.tray.setIcon(QIcon(os.path.dirname(os.path.realpath(__file__)) + "/icon.png"))
         self.tray_icon = QSystemTrayIcon(self)
-        self.tray_icon.setIcon(QIcon(os.path.dirname(os.path.realpath(__file__)) + "/icon.png")) 
- 
+        self.tray_icon.setIcon(QIcon(os.path.dirname(
+            os.path.realpath(__file__)) + "/icon.png"))
+
         '''
             Define and add steps to work with the system tray icon
             show - show window
@@ -526,8 +544,10 @@ class mainwindowUI(QMainWindow):
         global originalPalette
         if originalPalette == None:
             originalPalette = QApplication.palette()
-        if CSSOn[0] == 'True': self.setStyleSheet(open(themes_folder + "style.qss", "r").read())
-        else: self.setStyleSheet('')
+        if CSSOn[0] == 'True':
+            self.setStyleSheet(open(themes_folder + "style.qss", "r").read())
+        else:
+            self.setStyleSheet('')
         if DefaultMode[0] == 'True':
             if current_platform == 'Windows':
                 app.setStyle('Windowsvista')
@@ -657,7 +677,8 @@ class mainwindowUI(QMainWindow):
         self.clearLayout(self.NoteGridLayout)
         self.clearLayout(self.NoteTypeGridLayout)
         self.UINotes()
-        if play: threading.Thread(target=self.playNote, args=(index,)).start()
+        if play:
+            threading.Thread(target=self.playNote, args=(index,)).start()
 
         # if play: self.playNote(index)
 
@@ -711,7 +732,7 @@ class mainwindowUI(QMainWindow):
                         all_available_note_types.append(note_types[note])
         except:
             ret = QMessageBox.warning(self, 'No genre files', "Must create a genere file to generate music.\n\nWould you like to create a genre?",
-                                      QMessageBox.Yes | 
+                                      QMessageBox.Yes |
                                       QMessageBox.No | QMessageBox.Cancel, QMessageBox.Cancel)
             if ret == QMessageBox.Yes:
                 self.createGenere()
@@ -758,7 +779,8 @@ class mainwindowUI(QMainWindow):
                 self.comboExport.setEnabled(False)
                 self.comboExport.addItem('Save As...')
                 self.comboExport.addItem('Audio')
-                self.comboExport.addItem('Video')
+                if current_platform == 'Linux':
+                    self.comboExport.addItem('Video')
                 # self.comboExport.addItem('')
 
                 self.gridMusicProgressGridLayout.addWidget(
@@ -782,12 +804,17 @@ class mainwindowUI(QMainWindow):
                 loop.exec_()
 
     def btnOpenPath(self, path):
-        if current_platform == 'Linux': wb.open(path)
+        if current_platform == 'Linux':
+            wb.open(path)
         elif current_platform == 'Windows':
-            FILEBROWSER_PATH = os.path.join(os.getenv('WINDIR'), 'explorer.exe')
+            FILEBROWSER_PATH = os.path.join(
+                os.getenv('WINDIR'), 'explorer.exe')
             path = os.path.normpath(path)
-            if os.path.isdir(path): subprocess.run([FILEBROWSER_PATH, path])
-            elif os.path.isfile(path): subprocess.run([FILEBROWSER_PATH, '/select,', os.path.normpath(path)])
+            if os.path.isdir(path):
+                subprocess.run([FILEBROWSER_PATH, path])
+            elif os.path.isfile(path):
+                subprocess.run(
+                    [FILEBROWSER_PATH, '/select,', os.path.normpath(path)])
 
     def btnDeleteAllFiles(self, filesToDelete):
         self.delete_how_many_files = 0
@@ -809,7 +836,8 @@ class mainwindowUI(QMainWindow):
                 path = path.replace('.mp3', '.mp4')
             if not self.delete_how_many_files == 0 and final:
                 grammerFix = 'file' if self.delete_how_many_files == 1 else 'files'
-                self.send_notification('Deleted', f'Successfully deleted {self.delete_how_many_files} {grammerFix}.')
+                self.send_notification(
+                    'Deleted', f'Successfully deleted {self.delete_how_many_files} {grammerFix}.')
         except Exception as e:
             print(e)
 
@@ -841,7 +869,8 @@ class mainwindowUI(QMainWindow):
         text, okPressed = QInputDialog.getText(
             self, "Name", "Enter Genre name:", QLineEdit.Normal, "")
         if okPressed and text != '':
-            if not text.endswith('.json'): file_name = self.genres_folder + text + '.json'
+            if not text.endswith('.json'):
+                file_name = self.genres_folder + text + '.json'
             with open(file_name, 'w+') as f:
                 textToWrite = '[{"Name":["' + text + '"],"Notes":[{"C1":["True"],"C#1":["True"],"D1":["True"],"Eb1":["True"],"E1":["True"],"F1":["True"],"F#1":["True"],"G1":["True"],"Ab1":["True"],"A1":["True"],"Bb1":["True"],"B1":["True"],"C2":["True"],"C#2":["True"],"D2":["True"],"Eb2":["True"],"E2":["True"],"F2":["True"],"F#2":["True"],"G2":["True"],"Ab2":["True"],"A2":["True"],"Bb2":["True"],"B2":["True"],"C3":["True"],"C#3":["True"],"D3":["True"],"Eb3":["True"],"E3":["True"],"F3":["True"],"F#3":["True"],"G3":["True"],"Ab3":["True"],"A3":["True"],"Bb3":["True"],"B3":["True"],"C4":["True"],"C#4":["True"],"D4":["True"],"Eb4":["True"],"E4":["True"],"F4":["True"],"F#4":["True"],"G4":["True"],"Ab4":["True"],"A4":["True"],"Bb4":["True"],"B4":["True"],"C5":["True"],"C#5":["True"],"D5":["True"],"Eb5":["True"],"E5":["True"],"F5":["True"],"F#5":["True"],"G5":["True"],"Ab5":["True"],"A5":["True"],"Bb5":["True"],"B5":["True"],"C6":["True"]}],"Note Types":[{"Semibreve":["True"],"Minim":["True"],"Crochet":["True"],"Quaver":["True"],"Semiquaver":["True"],"Demisemiquaver":["True"]}]}]'
                 f.write(textToWrite)
@@ -851,17 +880,20 @@ class mainwindowUI(QMainWindow):
 
     def deleteGenere(self):
         text, okPressed = QInputDialog().getItem(self, "Select one to delete.",
-                                          "Generes:", genre_names, 0, False)
+                                                 "Generes:", genre_names, 0, False)
         if okPressed:
             for i in self.all_genre_files:
                 i = i.replace(self.genres_folder, '')
                 i = i.replace('.json', '')
                 if text == i:
-                    if not text.endswith('.json'): os.remove(self.genres_folder + text + '.json')
-                    else: os.remove(self.genres_folder + text)
+                    if not text.endswith('.json'):
+                        os.remove(self.genres_folder + text + '.json')
+                    else:
+                        os.remove(self.genres_folder + text)
         self.refreshNoteSettingComboBox()
         self.updateNotes()
-        if not len(genre_names) == 1: self.genresComboBox.setCurrentIndex(0)
+        if not len(genre_names) == 1:
+            self.genresComboBox.setCurrentIndex(0)
 
     def refreshNoteSettingComboBox(self):
         index = 0
@@ -921,7 +953,8 @@ class mainwindowUI(QMainWindow):
             with open(config_file, mode='w+', encoding='utf-8') as file:
                 json.dump(config_json, file, ensure_ascii=True)
             self.reload_config_file()
-            genres_file = self.all_genre_files[self.genresComboBox.currentIndex()]
+            genres_file = self.all_genre_files[self.genresComboBox.currentIndex(
+            )]
             with open(genres_file) as file:
                 genres_json = json.load(file)
                 for i, noteState in enumerate(genres_json[0]['Notes']):
@@ -930,8 +963,10 @@ class mainwindowUI(QMainWindow):
                 for i, noteState in enumerate(genres_json[0]['Note Types']):
                     for j, k in enumerate(note_types):
                         note_type_states.append(noteState[str(k)][0])
-        except FileNotFoundError: pass
-        except IndexError: pass
+        except FileNotFoundError:
+            pass
+        except IndexError:
+            pass
         self.clearLayout(self.NoteGridLayout)
         self.clearLayout(self.NoteTypeGridLayout)
         self.UINotes()
@@ -968,9 +1003,14 @@ class mainwindowUI(QMainWindow):
             while layout.count():
                 item = layout.takeAt(0)
                 widget = item.widget()
-                if widget is not None: widget.deleteLater()
-                else: self.clearLayout(item.layout())
+                if widget is not None:
+                    widget.deleteLater()
+                else:
+                    self.clearLayout(item.layout())
         self.btnDeleteAllList.clear()
+        self.generatedMusicLayout.setHidden(True)
+        self.btnDeleteAll.setEnabled(False)
+        self.btnClear.setEnabled(False)
 
     def stop_generation_threads(self):
         for generator in self.threads:
@@ -983,6 +1023,7 @@ class mainwindowUI(QMainWindow):
         self.btnClear.setEnabled(True)
 
     def start_generation(self, progressBar, buttonName, buttonPlay, buttonDelete, labelStatus, comboExport):
+        self.generatedMusicLayout.setHidden(False)
         # self.thread.clear()
         generator = GenerateThread(self.alphabetText, genres_file, self.inputSongLength.text(), note_types, keys_json, note_states, note_type_states,
                                    self.genAlgorithms.currentText(), self.genresComboBox.currentText(), progressBar, buttonName, buttonPlay, buttonDelete, labelStatus, comboExport)
@@ -1034,18 +1075,24 @@ class mainwindowUI(QMainWindow):
         default_filename = compile_folder + fileName
         directoryAndFile = ''
         extension = ''
-        
+
         if comboExport.currentText() == 'Audio':
-            directoryAndFile, extension = QFileDialog.getSaveFileName(self, "Save audio file", default_filename, f"mp3 (*.mp3)")
-            if not directoryAndFile or not extension: comboExport.setCurrentIndex(0); return
+            directoryAndFile, extension = QFileDialog.getSaveFileName(
+                self, "Save audio file", default_filename, f"mp3 (*.mp3)")
+            if not directoryAndFile or not extension:
+                comboExport.setCurrentIndex(0)
+                return
         elif comboExport.currentText() == 'Video':
-            directoryAndFile, extension = QFileDialog.getSaveFileName(self, "Save video file", default_filename, f"mp4 (*.mp4);;.webm (*.webm)")
-            if not directoryAndFile or not extension: comboExport.setCurrentIndex(0); return
+            directoryAndFile, extension = QFileDialog.getSaveFileName(
+                self, "Save video file", default_filename, f"mp4 (*.mp4);;.webm (*.webm)")
+            if not directoryAndFile or not extension:
+                comboExport.setCurrentIndex(0)
+                return
         file_extension = extension.split('*')[-1].replace(')', '')
         self.setCursor(Qt.BusyCursor)
         threading.Thread(target=self.exportFilesThread, args=(comboExport, labelStatus, buttonName,
-                                                        directoryAndFile, file_extension, audio_file,
-                                                        info_notes, info_note_types, info_duration_per_note,)).start()
+                                                              directoryAndFile, file_extension, audio_file,
+                                                              info_notes, info_note_types, info_duration_per_note,)).start()
 
     def exportFilesThread(self, comboExport, labelStatus, buttonName, file_name, file_extension, audio_file, info_notes, info_note_types, info_duration_per_note):
         width = 640
@@ -1105,7 +1152,8 @@ class mainwindowUI(QMainWindow):
 
     def get_key(self, val):
         for key, value in note_types.items():
-            if val == value: return key
+            if val == value:
+                return key
 
     def generate_song(self, algorithmName, progressBar, buttonName, buttonPlay, buttonDelete, labelStatus, comboExport):
         self.setCursor(Qt.BusyCursor)
@@ -1134,7 +1182,8 @@ class mainwindowUI(QMainWindow):
         self.licenseUI.show()
 
     def reload_config_file(self):
-        load_config_file(DefaultMode, DarkMode, LightMode, CSSOn, lastSelectedGenre, lastSelectedAlgorithm, lastSelectedTheme)
+        load_config_file(DefaultMode, DarkMode, LightMode, CSSOn,
+                         lastSelectedGenre, lastSelectedAlgorithm, lastSelectedTheme)
 
 
 class licensewindowUI(QDialog):
@@ -1188,8 +1237,9 @@ class settingsUI(QWidget):
         self.Light.setChecked(True if LightMode[0] == 'True' else False)
         self.comboBoxStyles.currentIndexChanged.connect(self.ComboClicked)
         for index, style in enumerate(self.styles):
-            if lastSelectedTheme[0] == style: self.comboBoxStyles.setCurrentIndex(index)
-        
+            if lastSelectedTheme[0] == style:
+                self.comboBoxStyles.setCurrentIndex(index)
+
         self.btnApply = self.findChild(QPushButton, 'btnApply')
         self.btnApply.clicked.connect(self.close)
 
@@ -1207,7 +1257,8 @@ class settingsUI(QWidget):
             })
         with open(config_file, mode='w+', encoding='utf-8') as file:
             json.dump(config_json, file, ensure_ascii=True)
-        load_config_file(DefaultMode, DarkMode, LightMode, CSSOn, lastSelectedGenre, lastSelectedAlgorithm, lastSelectedTheme)
+        load_config_file(DefaultMode, DarkMode, LightMode, CSSOn,
+                         lastSelectedGenre, lastSelectedAlgorithm, lastSelectedTheme)
         self.load_theme()
 
     def ComboClicked(self):
@@ -1230,16 +1281,22 @@ class settingsUI(QWidget):
             })
         with open(config_file, mode='w+', encoding='utf-8') as file:
             json.dump(config_json, file, ensure_ascii=True)
-        load_config_file(DefaultMode, DarkMode, LightMode, CSSOn, lastSelectedGenre, lastSelectedAlgorithm, lastSelectedTheme)
+        load_config_file(DefaultMode, DarkMode, LightMode, CSSOn,
+                         lastSelectedGenre, lastSelectedAlgorithm, lastSelectedTheme)
         self.load_theme()
 
     def load_theme(self):
         QApplication.setPalette(QApplication.palette())
-        if CSSOn[0] == 'True': self.mainwindow.setStyleSheet(open(themes_folder + "style.qss", "r").read())
-        else: self.mainwindow.setStyleSheet('')
+        if CSSOn[0] == 'True':
+            self.mainwindow.setStyleSheet(
+                open(themes_folder + "style.qss", "r").read())
+        else:
+            self.mainwindow.setStyleSheet('')
         if DefaultMode[0] == 'True':
-            if current_platform == 'Windows': app.setStyle('Windowsvista')
-            elif current_platform == 'Linux': app.setStyle('Fusion')
+            if current_platform == 'Windows':
+                app.setStyle('Windowsvista')
+            elif current_platform == 'Linux':
+                app.setStyle('Fusion')
             QApplication.setPalette(originalPalette)
             app.setStyleSheet('')
         if LightMode[0] == 'True':
@@ -1323,8 +1380,10 @@ if current_platform == 'Windows':
     genres_folder = genres_folder.replace('/', '\\')
     themes_folder = themes_folder.replace('/', '\\')
 
-if not os.path.exists(compile_folder): os.mkdir(compile_folder)
-if not os.path.exists(genres_folder): os.mkdir(genres_folder)
+if not os.path.exists(compile_folder):
+    os.mkdir(compile_folder)
+if not os.path.exists(genres_folder):
+    os.mkdir(genres_folder)
 all_genre_files = [f for f in glob.glob(
     genres_folder + "**/*.json", recursive=True)]
 try:
@@ -1355,7 +1414,8 @@ for i in all_genre_files:
     i = i.replace(genres_folder, '')
     i = i.replace('.json', '')
     genre_names.append(i)
-with open(keys_file) as file: keys_json = json.load(file)
+with open(keys_file) as file:
+    keys_json = json.load(file)
 try:
     with open(genres_file) as file:
         genres_json = json.load(file)
@@ -1365,7 +1425,8 @@ try:
         for i, noteState in enumerate(genres_json[0]['Note Types']):
             for j, k in enumerate(note_types):
                 note_type_states.append(noteState[str(k)][0])
-except: pass
+except:
+    pass
 
 # CONFIG JSON
 DefaultMode = []
@@ -1386,20 +1447,28 @@ def load_config_file(*args):
         j.clear()
         with open(config_file) as file:
             config_json = json.load(file)
-            for d in config_json[0]['Default']: args[0].append(d)
-            for da in config_json[0]['Dark']: args[1].append(da)
-            for l in config_json[0]['Light']: args[2].append(l)
-            for c in config_json[0]['CSS']: args[3].append(c)
-            for g in config_json[0]['Last Genre']: args[4].append(g)
-            for al in config_json[0]['Last Algorithm']: args[5].append(al)
-            for th in config_json[0]['Last Theme']: args[6].append(th)
+            for d in config_json[0]['Default']:
+                args[0].append(d)
+            for da in config_json[0]['Dark']:
+                args[1].append(da)
+            for l in config_json[0]['Light']:
+                args[2].append(l)
+            for c in config_json[0]['CSS']:
+                args[3].append(c)
+            for g in config_json[0]['Last Genre']:
+                args[4].append(g)
+            for al in config_json[0]['Last Algorithm']:
+                args[5].append(al)
+            for th in config_json[0]['Last Theme']:
+                args[6].append(th)
 
 
 def exit_handler(): sys.exit()
 
 
 if __name__ == '__main__':
-    load_config_file(DefaultMode, DarkMode, LightMode, CSSOn, lastSelectedGenre, lastSelectedAlgorithm, lastSelectedTheme)
+    load_config_file(DefaultMode, DarkMode, LightMode, CSSOn,
+                     lastSelectedGenre, lastSelectedAlgorithm, lastSelectedTheme)
     atexit.register(exit_handler)
     app = QApplication(sys.argv)
     window = mainwindowUI()
