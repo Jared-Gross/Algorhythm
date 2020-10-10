@@ -1,6 +1,21 @@
 #!/usr/bin python3
 # You should also check the file have the right to be execute. chmod +x main.py
 # pip install pywin32-ctypes
+import qdarkstyle
+from Themes.Breeze import breeze_resources
+import qdarkgraystyle
+import simpleaudio
+from pydub import AudioSegment
+from pydub.playback import play
+from functools import partial
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5 import *
+from PyQt5 import uic
+from string import ascii_lowercase, ascii_uppercase
+from datetime import datetime
+from playsound import playsound
 import ctypes
 import threading
 import traceback
@@ -14,25 +29,11 @@ import sys
 current_platform = 'Linux' if sys.platform == "linux" or sys.platform == "linux2" else 'Windows'
 if current_platform == 'Linux':
     try:
-        import qdarkgraystyle
-        import qdarkstyle
         from moviepy import editor
         from moviepy.audio.io.AudioFileClip import AudioFileClip
         from moviepy.video.io.VideoFileClip import VideoFileClip
-        from Themes.Breeze import breeze_resources
     except ModuleNotFoundError:
         print('Only works for linux')
-from datetime import datetime
-from string import ascii_lowercase, ascii_uppercase
-from PyQt5 import uic
-from PyQt5 import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
-from functools import partial
-from pydub.playback import play
-from pydub import AudioSegment
-import simpleaudio
 if current_platform == 'Windows':
     import win32com
 # Audio Imports
@@ -696,8 +697,7 @@ class mainwindowUI(QMainWindow):
         try:
             file_name = file_name.replace('.mp3', ' A.mp3')
             audio_file.export(f"{compile_folder}{file_name}", format="mp3")
-            audio = AudioSegment.from_mp3(f'{compile_folder}{file_name}')
-            play(audio)
+            playsound(f"{compile_folder}{file_name}")
             os.remove(f'{compile_folder}{file_name}')
         except PermissionError as e:
             self.OpenErrorDialog('Permission Denied', e)
@@ -708,9 +708,7 @@ class mainwindowUI(QMainWindow):
 
     def playNote(self, i):
         try:
-            note = AudioSegment.from_mp3(
-                f"{piano_samples}{keys_json[0]['keys'][i]}.mp3")
-            play(note)
+            playsound(f"{piano_samples}{keys_json[0]['keys'][i]}.mp3")
         except PermissionError as e:
             self.OpenErrorDialog('Permission Denied', e)
             return
@@ -870,9 +868,10 @@ class mainwindowUI(QMainWindow):
                 n = notify()
                 # Show notification whenever needed
                 n.show_toast(header, message, threaded=True,
-                                icon_path=ICON_PATH, duration=duration_sec)  # 3 seconds
+                             icon_path=ICON_PATH, duration=duration_sec)  # 3 seconds
             except ModuleNotFoundError:
                 print('doesnt work on windows 7')
+
     def createGenere(self):
         text, okPressed = QInputDialog.getText(
             self, "Name", "Enter Genre name:", QLineEdit.Normal, "")
@@ -1237,10 +1236,10 @@ class settingsUI(QWidget):
         self.CSS.setChecked(True if CSSOn[0] == 'True' else False)
         self.CSS.toggled.connect(self.RadClicked)
 
-        if current_platform == 'Linux': 
-            self.styles = ['Breeze', 'Fusion', 'qdarkgraystyle', 'qdarkstyle']
-        else: 
-            self.styles = ['Fusion']
+        # if current_platform == 'Linux':
+        self.styles = ['Breeze', 'Fusion', 'qdarkgraystyle', 'qdarkstyle']
+        # else:
+        # self.styles = ['Breeze', 'Fusion']
         self.comboBoxStyles = self.findChild(QComboBox, 'comboBoxStyles')
         self.comboBoxStyles.addItems(self.styles)
         self.Default.setChecked(True if DefaultMode[0] == 'True' else False)
