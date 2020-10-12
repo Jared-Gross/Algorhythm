@@ -14,8 +14,7 @@
 
 ## Installation
 ### Windows
-Download here!
-https://drive.google.com/file/d/1IqwMJ4RBeJ685IE8fRP0bJ18oboslgtH/view?usp=sharing
+Download [here](https://drive.google.com/file/d/1IqwMJ4RBeJ685IE8fRP0bJ18oboslgtH/view?usp=sharing)!
 
 ### Linux
 Download this repository!
