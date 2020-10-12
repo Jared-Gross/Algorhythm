@@ -1,21 +1,15 @@
 #!/usr/bin python3
 # You should also check the file have the right to be execute. chmod +x main.py
 # pip install pywin32-ctypes
-import qdarkstyle
-from Themes.Breeze import breeze_resources
-import qdarkgraystyle
-import simpleaudio
-from pydub import AudioSegment
-from pydub.playback import play
 from functools import partial
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5 import *
 from PyQt5 import uic
-from string import ascii_lowercase, ascii_uppercase
-from datetime import datetime
-from playsound import playsound
+from moviepy.video.io.VideoFileClip import VideoFileClip
+from moviepy.audio.io.AudioFileClip import AudioFileClip
+from moviepy import editor
 import ctypes
 import threading
 import traceback
@@ -25,16 +19,20 @@ import time
 import glob
 import json
 import os
+from playsound import playsound
+import qdarkgraystyle
+import qdarkstyle
+from datetime import datetime
+from string import ascii_lowercase, ascii_uppercase
+from Themes.Breeze import breeze_resources
+from pydub.playback import play
+from pydub import AudioSegment
 import sys
 current_platform = 'Linux' if sys.platform == "linux" or sys.platform == "linux2" else 'Windows'
-if current_platform == 'Linux':
-    try:
-        from moviepy import editor
-        from moviepy.audio.io.AudioFileClip import AudioFileClip
-        from moviepy.video.io.VideoFileClip import VideoFileClip
-    except ModuleNotFoundError:
-        print('Only works for linux')
+
 if current_platform == 'Windows':
+    import wave
+    import pyaudio
     import win32com
 # Audio Imports
 # pip install pydub
@@ -45,6 +43,7 @@ if current_platform == 'Windows':
 # pip install moviepy
 # from moviepy.video.VideoClip import resize
 # from moviepy.video.VideoClip import VideoClip, ImageClip, ColorClip, TextClip
+
 '''
 NOTE make sure you have it installed properly
 pip install Wand
@@ -81,8 +80,6 @@ Breeze
 https://github.com/Alexhuszagh/BreezeStyleSheets
 '''
 
-# Other
-
 if current_platform == 'Linux':
     import webbrowser as wb
     # Only works for linux
@@ -93,10 +90,8 @@ elif current_platform == 'Windows':
     import subprocess
     # only works for windows
     # pip install win10toast
-    try:
-        from win10toast import ToastNotifier as notify
-    except ModuleNotFoundError:
-        print('module not found')
+    from win10toast import ToastNotifier as notify
+
 '''
 To generate a requirements.txt file you need to:
 pip install pipreqs
@@ -122,9 +117,10 @@ class GenerateThread(QThread):
     generated = pyqtSignal(str, float, object, object,
                            object, object, object, object, str, object, list, list, list)
 
-    def __init__(self, alphabetText, genres_file, seconds, note_types, keys_json, note_states, note_type_states, algorithmName, genreName, progressBar, buttonName, buttonPlay, buttonDelete, labelStatus, comboExport):
+    def __init__(self, alphabetText, play_live, genres_file, seconds, note_types, keys_json, note_states, note_type_states, algorithmName, genreName, progressBar, buttonName, buttonPlay, buttonDelete, labelStatus, comboExport):
         QThread.__init__(self)
         self.genres_file = genres_file
+        self.play_live = play_live
         self.seconds = float(seconds)
 
         self.note_types = note_types
@@ -152,7 +148,11 @@ class GenerateThread(QThread):
 
     def stop(self):
         self.running = False
-
+        
+    def __del__(self):    
+        self.running = False
+        self.wait()
+        
     def run(self):
         final_song = None
         self.all_available_notes = []
@@ -170,136 +170,130 @@ class GenerateThread(QThread):
         order_of_note_types = 0
         final_name = ''
         alphabet_finished = False
-        with open(self.genres_file) as file:
-            genres_json = json.load(file)
-            for i, noteState in enumerate(genres_json[0]['Notes'][0]):
-                if self.note_states[i] == 'True':
-                    self.all_available_notes.append(
-                        self.keys_json[0]['keys'][i])
-                    self.all_available_notes_index.append(i)
-            for i, note in enumerate(genres_json[0]['Note Types'][0]):
-                if self.note_type_states[i] == 'True':
-                    self.all_available_note_types.append(self.note_types[note])
-            while True:
-                if self.algorithmName == 'Random':
-                    randNote = random.randint(
-                        0, len(self.all_available_notes) - 1)
-                    randNoteType = random.randint(
-                        0, len(self.all_available_note_types) - 1)  # min = 0, max = 5
+        while self.running == True:
+            with open(self.genres_file) as file:
+                genres_json = json.load(file)
+                for i, noteState in enumerate(genres_json[0]['Notes'][0]):
+                    if self.note_states[i] == 'True':
+                        self.all_available_notes.append(self.keys_json[0]['keys'][i])
+                        self.all_available_notes_index.append(i)
+                for i, note in enumerate(genres_json[0]['Note Types'][0]):
+                    if self.note_type_states[i] == 'True': self.all_available_note_types.append(self.note_types[note])
+            if self.algorithmName == 'Random':
+                randNote = random.randint(
+                    0, len(self.all_available_notes) - 1)
+                randNoteType = random.randint(
+                    0, len(self.all_available_note_types) - 1)  # min = 0, max = 5
 
-                    selected_note_type = self.all_available_note_types[randNoteType]
-                    num += 1
-                    sum_of_notes += randNote
-                    sum_of_note_types += selected_note_type
+                selected_note_type = self.all_available_note_types[randNoteType]
+                num += 1
+                sum_of_notes += randNote
+                sum_of_note_types += selected_note_type
+                self.info_note_types.append(selected_note_type)
+                # min = 0, max = 60
+                note = AudioSegment.from_mp3(
+                    f"{piano_samples}{self.all_available_notes[randNote]}.mp3")
+                note = note + 3  # increase audio
+                self.info_notes.append(self.all_available_notes[randNote])
+                note_length = note.duration_seconds * 1000  # milliseconds
+                note = note[:note_length / selected_note_type]
+                self.info_duration_per_note.append(note.duration_seconds)
+                if self.play_live: play(note)
+                final_song = note if not final_song else final_song + note
+            elif 'Step' in self.algorithmName:
+                step_keys = []
+                step_note_keys = []
+                step_available_notes = []
+                step_available_notes_types = []
+                if not step_keys:
+                    step_keys, step_note_keys = self.getStepNumberList()
+                if '(-)' in self.algorithmName:
+                    step_keys.reverse()
+                    step_note_keys.reverse()
+                elif 'Random' in self.algorithmName:
+                    random.shuffle(step_keys)
+                    random.shuffle(step_note_keys)
+                for index, j in enumerate(step_note_keys):
+                    selected_note_type = step_note_keys[index]
                     self.info_note_types.append(selected_note_type)
-                    # min = 0, max = 60
+                    # selected_note_type = step_available_notes_types[i]
                     note = AudioSegment.from_mp3(
-                        f"{piano_samples}{self.all_available_notes[randNote]}.mp3")
+                        f"{piano_samples}{step_keys[index]}.mp3")
                     note = note + 3  # increase audio
-                    self.info_notes.append(self.all_available_notes[randNote])
-                    note_length = note.duration_seconds * 1000  # milliseconds
-                    note = note[:note_length / selected_note_type]
-                    self.info_duration_per_note.append(note.duration_seconds)
-                    final_song = note if not final_song else final_song + note
-                elif 'Step' in self.algorithmName:
-                    step_keys = []
-                    step_note_keys = []
-                    step_available_notes = []
-                    step_available_notes_types = []
-                    if not step_keys:
-                        step_keys, step_note_keys = self.getStepNumberList()
-                    if '(-)' in self.algorithmName:
-                        step_keys.reverse()
-                        step_note_keys.reverse()
-                    elif 'Random' in self.algorithmName:
-                        random.shuffle(step_keys)
-                        random.shuffle(step_note_keys)
-                    for index, j in enumerate(step_note_keys):
-                        selected_note_type = step_note_keys[index]
-                        self.info_note_types.append(selected_note_type)
-                        # selected_note_type = step_available_notes_types[i]
-                        note = AudioSegment.from_mp3(
-                            f"{piano_samples}{step_keys[index]}.mp3")
-                        note = note + 3  # increase audio
 
-                        self.info_notes.append(step_keys[index])
-                        note_length = note.duration_seconds * 1000  # milliseconds
+                    self.info_notes.append(step_keys[index])
+                    note_length = note.duration_seconds * 1000  # milliseconds
+
+                    num += 1
+                    sum_of_notes += index
+                    sum_of_note_types += selected_note_type
+
+                    try:
+                        note = note[:note_length / selected_note_type]
+                    except ZeroDivisionError:
+                        note = note[:note_length / selected_note_type + 1]
+
+                    self.info_duration_per_note.append(
+                        note.duration_seconds)
+                    if self.play_live: play(note)
+                    final_song = note if not final_song else final_song + note
+                    if i == len(step_available_notes):
+                        step_keys, step_note_keys = self.getStepNumberList()
+
+                    self.generated.emit('Status: Generating...', (final_song.duration_seconds / self.seconds * 100),
+                                        self.progressBar, self.buttonName, self.buttonPlay, self.buttonDelete, self.labelStatus, self.comboExport, final_name, final_song, self.info_notes, self.info_note_types, self.info_duration_per_note)
+            elif self.algorithmName == 'Alphabet':
+                alpha_keys = []
+                alpha_note_keys = []
+                if not alpha_keys:
+                    alpha_keys, alpha_note_keys = self.char_to_notes(
+                        self.char_to_num(self.alphabetText.toPlainText(), False))
+                final_time = 0
+                for i, j in enumerate(alpha_keys):
+                    for o, k in enumerate(j):
+                        final_time += 1
+                # final_time = (len(alpha_keys) + 1 * len(alpha_note_keys) + 1)
+                current = 0
+                for i, j in enumerate(alpha_keys):
+                    selected_note_type = alpha_note_keys[i]
+                    for o, k in enumerate(j):
+                        current += 1
+                        self.info_notes.append(k)
+                        note = AudioSegment.from_mp3(
+                            f"{piano_samples}{k}.mp3")
 
                         num += 1
-                        sum_of_notes += index
+                        sum_of_notes += o
                         sum_of_note_types += selected_note_type
 
-                        try:
-                            note = note[:note_length / selected_note_type]
-                        except ZeroDivisionError:
-                            note = note[:note_length / selected_note_type + 1]
-
+                        note = note + 3  # increase audio
+                        note_length = note.duration_seconds * 1000  # milliseconds
+                        note = note[:note_length / selected_note_type]
+                        self.info_note_types.append(selected_note_type)
                         self.info_duration_per_note.append(
                             note.duration_seconds)
                         final_song = note if not final_song else final_song + note
-                        if i == len(step_available_notes):
-                            step_keys, step_note_keys = self.getStepNumberList()
-
-                        self.generated.emit('Status: Generating...', (final_song.duration_seconds / self.seconds * 100),
+                        self.generated.emit('Status: Generating...', ((current / final_time) * 100),
                                             self.progressBar, self.buttonName, self.buttonPlay, self.buttonDelete, self.labelStatus, self.comboExport, final_name, final_song, self.info_notes, self.info_note_types, self.info_duration_per_note)
-                elif self.algorithmName == 'Alphabet':
-                    alpha_keys = []
-                    alpha_note_keys = []
-                    if not alpha_keys:
-                        alpha_keys, alpha_note_keys = self.char_to_notes(
-                            self.char_to_num(self.alphabetText.toPlainText(), False))
-                    final_time = 0
-                    for i, j in enumerate(alpha_keys):
-                        for o, k in enumerate(j):
-                            final_time += 1
-                    # final_time = (len(alpha_keys) + 1 * len(alpha_note_keys) + 1)
-                    current = 0
-                    for i, j in enumerate(alpha_keys):
-                        selected_note_type = alpha_note_keys[i]
-                        for o, k in enumerate(j):
-                            current += 1
-                            self.info_notes.append(k)
-                            note = AudioSegment.from_mp3(
-                                f"{piano_samples}{k}.mp3")
-
-                            num += 1
-                            sum_of_notes += o
-                            sum_of_note_types += selected_note_type
-
-                            note = note + 3  # increase audio
-                            note_length = note.duration_seconds * 1000  # milliseconds
-                            note = note[:note_length / selected_note_type]
-                            self.info_note_types.append(selected_note_type)
-                            self.info_duration_per_note.append(
-                                note.duration_seconds)
-                            final_song = note if not final_song else final_song + note
-                            self.generated.emit('Status: Generating...', ((current / final_time) * 100),
-                                                self.progressBar, self.buttonName, self.buttonPlay, self.buttonDelete, self.labelStatus, self.comboExport, final_name, final_song, self.info_notes, self.info_note_types, self.info_duration_per_note)
-                    alphabet_finished = True
-                if alphabet_finished or final_song.duration_seconds >= self.seconds:
-                    # final_name = (f'{str(first_note)}{str(num)}{str(order_of_notes)}{str(order_of_note_types)}{str(first_note_type)}
-                    # self.generated.emit('Status: Saving...', (final_song.duration_seconds / self.seconds * 100),
-                    # self.progressBar, self.buttonName, self.buttonPlay, self.buttonDelete, self.labelStatus, self.comboExport, final_name, final_song, self.info_notes, self.info_note_types, self.info_duration_per_note)
-                    final_name = (
-                        f'{str(self.algorithmName)} {str(num)}{str(sum_of_notes)}{str(sum_of_note_types)}{str(int(final_song.duration_seconds))}.mp3')
-                    final_song.fade_in(6000).fade_out(6000)
-                    self.generated.emit('Status: Finished!', (100), self.progressBar, self.buttonName,
-                                        self.buttonPlay, self.buttonDelete, self.labelStatus, self.comboExport, final_name, final_song, self.info_notes, self.info_note_types, self.info_duration_per_note)
-                    break
-                # elif does_song_have_time_limit == False and alphabet_finished == True:
-                #     self.generated.emit('Status: Saving...', (final_song.duration_seconds / self.seconds * 100), self.progressBar, self.buttonName, self.buttonPlay, self.buttonDelete, self.labelStatus, self.comboExport, final_name, final_song, self.info_notes, self.info_note_types, self.info_duration_per_note)
-                #     final_name = (f'{str(self.algorithmName)} {str(self.genreName)} {str(final_song.duration_seconds)}{str()}.mp3')
-                #     final_song.fade_in(6000).fade_out(6000)
-                #     final_song.export(f"{compile_folder}{final_name}", format="mp3")
-                #     self.generated.emit('Status: Finished!', (100), self.progressBar, self.buttonName, self.buttonPlay, self.buttonDelete, self.labelStatus, self.comboExport, final_name, final_song, self.info_notes, self.info_note_types, self.info_duration_per_note)
-                #     break
-                if not self.running:
-                    self.generated.emit('Status: Canceled!', (final_song.duration_seconds / self.seconds * 100),
-                                        self.progressBar, self.buttonName, self.buttonPlay, self.buttonDelete, self.labelStatus, self.comboExport, final_name, final_song, self.info_notes, self.info_note_types, self.info_duration_per_note)
-                    break
-
-                self.generated.emit('Status: Generating...', (final_song.duration_seconds / self.seconds * 100),
-                                    self.progressBar, self.buttonName, self.buttonPlay, self.buttonDelete, self.labelStatus, self.comboExport, final_name, final_song, self.info_notes, self.info_note_types, self.info_duration_per_note)
+                alphabet_finished = True
+            if not self.play_live and alphabet_finished or final_song.duration_seconds >= self.seconds:
+                final_name = (
+                    f'{str(self.algorithmName)} {str(num)}{str(sum_of_notes)}{str(sum_of_note_types)}{str(int(final_song.duration_seconds))}.mp3')
+                final_song.fade_in(6000).fade_out(6000)
+                self.generated.emit('Status: Finished!', (100), self.progressBar, self.buttonName,
+                                    self.buttonPlay, self.buttonDelete, self.labelStatus, self.comboExport, final_name, final_song, self.info_notes, self.info_note_types, self.info_duration_per_note)
+                break
+            if not self.running:
+                self.generated.emit('Status: Canceled!', (final_song.duration_seconds / self.seconds * 100),
+                                    self.progressBar, self.buttonName, self.buttonPlay, self.buttonDelete, 
+                                    self.labelStatus, self.comboExport, final_name, final_song, self.info_notes, 
+                                    self.info_note_types, self.info_duration_per_note)
+                break
+            elif not self.play_live:
+                    self.generated.emit('Status: Generating...', (final_song.duration_seconds / self.seconds * 100),
+                                        self.progressBar, self.buttonName, self.buttonPlay, self.buttonDelete, 
+                                        self.labelStatus, self.comboExport, final_name, final_song, self.info_notes, 
+                                        self.info_note_types, self.info_duration_per_note)
 
     def getStepNumberList(self):
         amount_of_numbers = random.randint(4, 13)
@@ -307,23 +301,16 @@ class GenerateThread(QThread):
         note_types_number = []
         startNoteType = random.randint(0, 32)  # Min = 0, Max = 5
         endNoteType = random.randint(startNoteType, 32)
-        try:
-            stepNoteType = (endNoteType - startNoteType) / \
-                (amount_of_numbers - 1)
-        except ZeroDivisionError:
-            stepNoteType = (endNoteType - startNoteType) / (amount_of_numbers)
+        try: stepNoteType = (endNoteType - startNoteType) / (amount_of_numbers - 1)
+        except ZeroDivisionError: stepNoteType = (endNoteType - startNoteType) / (amount_of_numbers)
         # NOTES
         numbers = []
         step_number_notes = []
         start = random.randint(0, 60)
-        if start != 60:
-            end = random.randint(start + 1, 60)
-        else:
-            end = random.randint(start, 60)
-        try:
-            step = (end - start) / (amount_of_numbers - 1)
-        except ZeroDivisionError:
-            step = (end - start) / (amount_of_numbers)
+        if start != 60: end = random.randint(start + 1, 60)
+        else: end = random.randint(start, 60)
+        try: step = (end - start) / (amount_of_numbers - 1)
+        except ZeroDivisionError: step = (end - start) / (amount_of_numbers)
         for i in range(amount_of_numbers):
             # In this case we want to start at 1, to simplify things.
             i = i + 1
@@ -337,36 +324,26 @@ class GenerateThread(QThread):
                 # everything in bewtween
                 numbers.append(int(start + (i - 1) * step))
                 # everything in bewtween
-                note_types_number.append(
-                    int(startNoteType + (i - 1) * stepNoteType))
+                note_types_number.append(int(startNoteType + (i - 1) * stepNoteType))
             if i == amount_of_numbers:
-                numbers.append(
-                    int(start + (amount_of_numbers - 1) * step))  # end
-                note_types_number.append(
-                    int(startNoteType + (amount_of_numbers - 1) * stepNoteType))  # end
+                numbers.append(int(start + (amount_of_numbers - 1) * step))  # end
+                note_types_number.append(int(startNoteType + (amount_of_numbers - 1) * stepNoteType))  # end
         closest_numbers = []
         closest_numbers_note_types = []
-        for i, j in enumerate(numbers):
-            closest_numbers.append(self.closest(
-                self.all_available_notes_index, j))
-        for i, j in enumerate(note_types_number):
-            closest_numbers_note_types.append(
-                self.closest(self.all_available_note_types, j))
-        for i, j in enumerate(closest_numbers):
-            step_number_notes.append(keys_json[0]['keys'][j])
+        for i, j in enumerate(numbers): closest_numbers.append(self.closest(self.all_available_notes_index, j))
+        for i, j in enumerate(note_types_number): closest_numbers_note_types.append(self.closest(self.all_available_note_types, j))
+        for i, j in enumerate(closest_numbers): step_number_notes.append(keys_json[0]['keys'][j])
         return step_number_notes, closest_numbers_note_types
 
     def char_to_num(self, words, useLowerCase=False):
         # Toggle this to only use 1-26 numbers
-        if useLowerCase:
-            words = words.lower()
+        if useLowerCase: words = words.lower()
         output = []
         for s in words.split(' '):
             temp_list = []
             for i, j in enumerate(s):
                 for o, k in enumerate(alphabetList):
-                    if j == k:
-                        temp_list.append(alphabetValList[o])
+                    if j == k: temp_list.append(alphabetValList[o])
             output.append(temp_list)
         return output
 
@@ -376,22 +353,16 @@ class GenerateThread(QThread):
         alphabet_notes = []
         for i, j in enumerate(list_of_numbers):
             temp_list = []
-            alphabet_note_types.append(self.closest(
-                self.all_available_note_types, len(j)))
-            for o, k in enumerate(j):
-                temp_list.append(self.closest(
-                    self.all_available_notes_index, k))
+            alphabet_note_types.append(self.closest(self.all_available_note_types, len(j)))
+            for o, k in enumerate(j): temp_list.append(self.closest(self.all_available_notes_index, k))
             alphabet_notes_index.append(temp_list)
         for i, j in enumerate(alphabet_notes_index):
             temp_list = []
-            for o, k in enumerate(j):
-                temp_list.append(keys_json[0]['keys'][k])
+            for o, k in enumerate(j): temp_list.append(keys_json[0]['keys'][k])
             alphabet_notes.append(temp_list)
         return alphabet_notes, alphabet_note_types
 
-    def closest(self, lst, K):
-        return lst[min(range(len(lst)), key=lambda i: abs(lst[i] - K))]
-
+    def closest(self, lst, K): return lst[min(range(len(lst)), key=lambda i: abs(lst[i] - K))]
 
 class mainwindowUI(QMainWindow):
 
@@ -424,12 +395,22 @@ class mainwindowUI(QMainWindow):
         self.miscLabels.append(self.label_8)
 
         self.btnGenerate = self.findChild(QPushButton, 'btnGenerate_2')
-        self.btnGenerate.clicked.connect(partial(self.btnGenerateClicked))
+        self.btnGenerate.clicked.connect(partial(self.btnGenerateClicked, False))
         self.btnGenerate.setToolTip('Start generating music.')
 
-        self.generatedMusicLayout = self.findChild(
-            QFrame, 'generatedMusicLayout_2')
+        self.btnLiveStart = self.findChild(QPushButton, 'btnLiveStart')
+        self.btnLiveStart.setIcon(self.style().standardIcon(getattr(QStyle, 'SP_MediaPlay')))
+        self.btnLiveStart.clicked.connect(partial(self.btnGenerateClicked, True))
+
+        self.btnLiveStop = self.findChild(QPushButton, 'btnLiveStop')
+        self.btnLiveStop.setIcon(self.style().standardIcon(getattr(QStyle, 'SP_MediaStop')))
+        self.btnLiveStop.clicked.connect(self.stop_generation_threads)
+        self.btnLiveStop.setEnabled(False)
+        
+        self.generatedMusicLayout = self.findChild(QFrame, 'generatedMusicLayout_2')
         self.generatedMusicLayout.setHidden(True)
+        
+        self.liveControls = self.findChild(QFrame, 'LiveControl')
 
         self.btnDeleteAll = self.findChild(QPushButton, 'btnDeleteAll')
         self.btnDeleteAll.clicked.connect(
@@ -453,6 +434,7 @@ class mainwindowUI(QMainWindow):
         self.btnClear.setToolTip('Removes all generated music.')
 
         self.lblInputSongLength = self.findChild(QLabel, 'label_3')
+        
         self.inputSongLength = self.findChild(
             QDoubleSpinBox, 'inputSongLength_4')
 
@@ -684,7 +666,7 @@ class mainwindowUI(QMainWindow):
         self.clearLayout(self.NoteGridLayout)
         self.clearLayout(self.NoteTypeGridLayout)
         self.UINotes()
-        if play:
+        if play and toggleSoundOn[0] == 'True':
             threading.Thread(target=self.playNote, args=(index,)).start()
 
         # if play: self.playNote(index)
@@ -708,6 +690,9 @@ class mainwindowUI(QMainWindow):
 
     def playNote(self, i):
         try:
+            # note = AudioSegment.from_mp3(
+            #     f"{piano_samples}{keys_json[0]['keys'][i]}.mp3")
+            # play(note)
             playsound(f"{piano_samples}{keys_json[0]['keys'][i]}.mp3")
         except PermissionError as e:
             self.OpenErrorDialog('Permission Denied', e)
@@ -721,10 +706,10 @@ class mainwindowUI(QMainWindow):
         QMessageBox.critical(
             self, f'{title}', f"{text}", QMessageBox.Ok, QMessageBox.Ok)
 
-    def btnGenerateClicked(self):
+    def btnGenerateClicked(self, play_live):
         all_available_notes = []
         all_available_note_types = []
-
+        if not play_live: self.liveControls.setHidden(True)
         try:
             with open(genres_file) as file:
                 genres_json = json.load(file)
@@ -800,12 +785,13 @@ class mainwindowUI(QMainWindow):
                 self.gridMusicProgressGridLayout.addWidget(
                     self.comboExport, total, 5)
 
-                threading.Thread(target=self.generate_song, args=(self.genAlgorithms.currentText(
-                ), self.progressBar, self.btnName, self.btnPlay, self.btnDelete, self.lblStatus, self.comboExport,)).start()
+                threading.Thread(target=self.generate_song, args=(play_live, self.progressBar, self.btnName, self.btnPlay, self.btnDelete, self.lblStatus, self.comboExport,)).start()
 
                 loop = QEventLoop()
                 QTimer.singleShot(10, loop.quit)
                 loop.exec_()
+        self.btnLiveStop.setEnabled(True)
+        self.btnLiveStart.setEnabled(False)
 
     def btnOpenPath(self, path):
         if current_platform == 'Linux':
@@ -815,10 +801,11 @@ class mainwindowUI(QMainWindow):
                 os.getenv('WINDIR'), 'explorer.exe')
             path = os.path.normpath(path)
             if os.path.isdir(path):
-                subprocess.run([FILEBROWSER_PATH, path])
+                subprocess.run([FILEBROWSER_PATH, path], stdout=subprocess.PIPE,
+                               stderr=sbuprocess.PIPE, stdin=subprocess.PIPE)
             elif os.path.isfile(path):
                 subprocess.run(
-                    [FILEBROWSER_PATH, '/select,', os.path.normpath(path)])
+                    [FILEBROWSER_PATH, '/select,', os.path.normpath(path)], stdout=subprocess.PIPE, stderr=sbuprocess.PIPE, stdin=subprocess.PIPE)
 
     def btnDeleteAllFiles(self, filesToDelete):
         self.delete_how_many_files = 0
@@ -847,7 +834,7 @@ class mainwindowUI(QMainWindow):
 
     def send_notification(self, header, message):
         # path to notification window icon
-        ICON_PATH = os.path.realpath(__file__) + '/icon.ico'
+        ICON_PATH = os.path.realpath(__file__) + '/icon.png'
         duration_sec = 3
         if current_platform == 'Linux':
             # initialise the d-bus connection
@@ -863,14 +850,11 @@ class mainwindowUI(QMainWindow):
             # show notification on screen
             n.show()
         elif current_platform == 'Windows':
-            try:
-                # One-time initialization
-                n = notify()
-                # Show notification whenever needed
-                n.show_toast(header, message, threaded=True,
-                             icon_path=ICON_PATH, duration=duration_sec)  # 3 seconds
-            except ModuleNotFoundError:
-                print('doesnt work on windows 7')
+            # One-time initialization
+            n = notify()
+            # Show notification whenever needed
+            n.show_toast(header, message, threaded=True,
+                         icon_path=ICON_PATH, duration=duration_sec)  # 3 seconds
 
     def createGenere(self):
         text, okPressed = QInputDialog.getText(
@@ -955,10 +939,12 @@ class mainwindowUI(QMainWindow):
                     "CSS": [str(CSSOn[0])],
                     "Last Genre": [int(self.genresComboBox.currentIndex())],
                     "Last Theme": [str(lastSelectedTheme[0])],
-                    "Last Algorithm": [int(lastSelectedAlgorithm[0])]
+                    "Last Algorithm": [int(lastSelectedAlgorithm[0])],
+                    "Default Export Path": [str(defaultExportPath[0])],
+                    "Toggle Sound On": [str(toggleSoundOn[0])]
                 })
             with open(config_file, mode='w+', encoding='utf-8') as file:
-                json.dump(config_json, file, ensure_ascii=True)
+                json.dump(config_json, file, ensure_ascii=True, indent=4)
             self.reload_config_file()
             genres_file = self.all_genre_files[self.genresComboBox.currentIndex(
             )]
@@ -984,11 +970,13 @@ class mainwindowUI(QMainWindow):
             [img.setHidden(True) for img in self.miscLabels]
             self.inputSongLength.setHidden(True)
             self.lblInputSongLength.setHidden(True)
+            self.liveControls.setHidden(True)
         else:
             self.alphabetText.setHidden(True)
             [img.setHidden(False) for img in self.miscLabels]
             self.inputSongLength.setHidden(False)
-            self.lblInputSongLength.setHidden(True)
+            self.lblInputSongLength.setHidden(False)
+            self.liveControls.setHidden(False)
 
         config_json.pop(0)
         config_json.append(
@@ -999,10 +987,12 @@ class mainwindowUI(QMainWindow):
                 "CSS": [str(CSSOn[0])],
                 "Last Genre": [int(lastSelectedGenre[0])],
                 "Last Theme": [str(lastSelectedTheme[0])],
-                "Last Algorithm": [int(self.genAlgorithms.currentIndex())]
+                "Last Algorithm": [int(self.genAlgorithms.currentIndex())],
+                "Default Export Path": [str(defaultExportPath[0])],
+                "Toggle Sound On": [str(toggleSoundOn[0])]
             })
         with open(config_file, mode='w+', encoding='utf-8') as file:
-            json.dump(config_json, file, ensure_ascii=True)
+            json.dump(config_json, file, ensure_ascii=True, indent=4)
         self.reload_config_file()
 
     def clearLayout(self, layout):
@@ -1020,19 +1010,23 @@ class mainwindowUI(QMainWindow):
         self.btnClear.setEnabled(False)
 
     def stop_generation_threads(self):
+        self.setCursor(Qt.BusyCursor)
         for generator in self.threads:
-            # generator.terminate()
             generator.stop()
             generator.wait()
+            # generator.terminate()
         self.threads.clear()
         self.unsetCursor()
         self.btnDeleteAll.setEnabled(False)
         self.btnClear.setEnabled(True)
-
-    def start_generation(self, progressBar, buttonName, buttonPlay, buttonDelete, labelStatus, comboExport):
-        self.generatedMusicLayout.setHidden(False)
+        self.btnLiveStop.setEnabled(False)
+        self.btnLiveStart.setEnabled(True)
+        self.unsetCursor()
+    
+    def start_generation(self, play_live, progressBar, buttonName, buttonPlay, buttonDelete, labelStatus, comboExport):
+        self.generatedMusicLayout.setHidden(play_live)
         # self.thread.clear()
-        generator = GenerateThread(self.alphabetText, genres_file, self.inputSongLength.text(), note_types, keys_json, note_states, note_type_states,
+        generator = GenerateThread(self.alphabetText, play_live, genres_file, self.inputSongLength.text(), note_types, keys_json, note_states, note_type_states,
                                    self.genAlgorithms.currentText(), self.genresComboBox.currentText(), progressBar, buttonName, buttonPlay, buttonDelete, labelStatus, comboExport)
         generator.generated.connect(self.on_data_ready)
         self.threads.append(generator)
@@ -1062,9 +1056,14 @@ class mainwindowUI(QMainWindow):
                     self.btnDeleteFile, compile_folder + final_name, False, True))
                 buttonPlay.clicked.connect(
                     partial(self.btnPlayMediaClick, audio_file, final_name))
+                
+                self.btnLiveStop.setEnabled(False)
+                self.btnLiveStart.setEnabled(True)
+                self.liveControls.setHidden(False)
             elif lblStatus == 'Status: Canceled!':
                 self.btnClear.setEnabled(True)
                 self.btnCancelThreads.setEnabled(False)
+                self.liveControls.setHidden(False)
             else:
                 comboExport.setEnabled(False)
                 buttonPlay.setEnabled(False)
@@ -1162,9 +1161,9 @@ class mainwindowUI(QMainWindow):
             if val == value:
                 return key
 
-    def generate_song(self, algorithmName, progressBar, buttonName, buttonPlay, buttonDelete, labelStatus, comboExport):
-        self.setCursor(Qt.BusyCursor)
-        self.start_generation(progressBar, buttonName,
+    def generate_song(self, play_live, progressBar, buttonName, buttonPlay, buttonDelete, labelStatus, comboExport):
+        if not play_live: self.setCursor(Qt.BusyCursor)
+        self.start_generation(play_live, progressBar, buttonName,
                               buttonPlay, buttonDelete, labelStatus, comboExport)
         self.btnCancelThreads.setEnabled(True)
 
@@ -1190,7 +1189,7 @@ class mainwindowUI(QMainWindow):
 
     def reload_config_file(self):
         load_config_file(DefaultMode, DarkMode, LightMode, CSSOn,
-                         lastSelectedGenre, lastSelectedAlgorithm, lastSelectedTheme)
+                         lastSelectedGenre, lastSelectedAlgorithm, lastSelectedTheme, defaultExportPath, toggleSoundOn)
 
 
 class licensewindowUI(QDialog):
@@ -1224,22 +1223,29 @@ class settingsUI(QWidget):
         uic.loadUi(UI_folder + 'settings.ui', self)
         self.mainwindow = mainwindow
         self.center()
-        self.setFixedSize(270, 340)
+        self.setFixedSize(450, 260)
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowIcon(QIcon("icon.png"))
         self.Default = self.findChild(QRadioButton, 'radDefault')
-        self.Default.toggled.connect(self.RadClicked)
+        self.Default.toggled.connect(self.saveSettings)
         self.Dark = self.findChild(QRadioButton, 'radDark')
-        self.Dark.toggled.connect(self.RadClicked)
+        self.Dark.toggled.connect(self.saveSettings)
         self.Light = self.findChild(QRadioButton, 'radLight')
-        self.Light.toggled.connect(self.RadClicked)
+        self.Light.toggled.connect(self.saveSettings)
         self.CSS = self.findChild(QCheckBox, 'customeCSS')
         self.CSS.setChecked(True if CSSOn[0] == 'True' else False)
-        self.CSS.toggled.connect(self.RadClicked)
+        self.CSS.toggled.connect(self.saveSettings)
 
-        # if current_platform == 'Linux':
+        self.ToggleSoundOn = self.findChild(QCheckBox, 'ToggleSoundOn')
+        self.ToggleSoundOn.toggled.connect(self.saveSettings)
+        
+        self.txtExportPath = self.findChild(QLineEdit, 'txtExportPath')
+        self.txtExportPath.setText(compile_folder)
+        
+        self.btnExportPath = self.findChild(QPushButton, 'btnExportPath')
+        self.btnExportPath.clicked.connect(self.btnSlectedExportPath)
+
         self.styles = ['Breeze', 'Fusion', 'qdarkgraystyle', 'qdarkstyle']
-        # else:
-        # self.styles = ['Breeze', 'Fusion']
         self.comboBoxStyles = self.findChild(QComboBox, 'comboBoxStyles')
         self.comboBoxStyles.addItems(self.styles)
         self.Default.setChecked(True if DefaultMode[0] == 'True' else False)
@@ -1247,13 +1253,9 @@ class settingsUI(QWidget):
         self.Light.setChecked(True if LightMode[0] == 'True' else False)
         self.comboBoxStyles.currentIndexChanged.connect(self.ComboClicked)
         for index, style in enumerate(self.styles):
-            if lastSelectedTheme[0] == style:
-                self.comboBoxStyles.setCurrentIndex(index)
+            if lastSelectedTheme[0] == style: self.comboBoxStyles.setCurrentIndex(index)
 
-        self.btnApply = self.findChild(QPushButton, 'btnApply')
-        self.btnApply.clicked.connect(self.close)
-
-    def RadClicked(self):
+    def saveSettings(self):
         config_json.pop(0)
         config_json.append(
             {
@@ -1263,12 +1265,14 @@ class settingsUI(QWidget):
                 "CSS": [str(self.CSS.isChecked())],
                 "Last Genre": [int(lastSelectedGenre[0])],
                 "Last Theme": [str(lastSelectedTheme[0])],
-                "Last Algorithm": [int(lastSelectedAlgorithm[0])]
+                "Last Algorithm": [int(lastSelectedAlgorithm[0])],
+                "Default Export Path": [str(defaultExportPath[0])],
+                "Toggle Sound On": [str(self.ToggleSoundOn.isChecked())]
             })
         with open(config_file, mode='w+', encoding='utf-8') as file:
-            json.dump(config_json, file, ensure_ascii=True)
+            json.dump(config_json, file, ensure_ascii=True, indent=4)
         load_config_file(DefaultMode, DarkMode, LightMode, CSSOn,
-                         lastSelectedGenre, lastSelectedAlgorithm, lastSelectedTheme)
+                         lastSelectedGenre, lastSelectedAlgorithm, lastSelectedTheme, defaultExportPath, toggleSoundOn)
         self.load_theme()
 
     def ComboClicked(self):
@@ -1287,12 +1291,14 @@ class settingsUI(QWidget):
                 "CSS": [str(CSSOn[0])],
                 "Last Genre": [int(lastSelectedGenre[0])],
                 "Last Theme": [str(self.comboBoxStyles.currentText())],
-                "Last Algorithm": [int(lastSelectedAlgorithm[0])]
+                "Last Algorithm": [int(lastSelectedAlgorithm[0])],
+                "Default Export Path": [str(defaultExportPath[0])],
+                "Toggle Sound On": [str(toggleSoundOn[0])]
             })
         with open(config_file, mode='w+', encoding='utf-8') as file:
-            json.dump(config_json, file, ensure_ascii=True)
+            json.dump(config_json, file, ensure_ascii=True, indent=4)
         load_config_file(DefaultMode, DarkMode, LightMode, CSSOn,
-                         lastSelectedGenre, lastSelectedAlgorithm, lastSelectedTheme)
+                         lastSelectedGenre, lastSelectedAlgorithm, lastSelectedTheme, defaultExportPath, toggleSoundOn)
         self.load_theme()
 
     def load_theme(self):
@@ -1360,6 +1366,36 @@ class settingsUI(QWidget):
                 QApplication.setPalette(originalPalette)
                 app.setStyleSheet(qdarkgraystyle.load_stylesheet())
 
+    def btnSlectedExportPath(self):
+        # dlg = QFileDialog()
+        # dlg.setFileMode(QFileDialog.Directory)
+
+        dialog = QFileDialog(self)
+        dialog.setWindowTitle('Default Export Path')
+        dialog.setNameFilter('')
+        dialog.setDirectory(compile_folder)
+        dialog.setFileMode(QFileDialog.Directory)
+        if dialog.exec_() == QDialog.Accepted:
+            file_full_path = str(dialog.selectedFiles()[0]) + '/'
+            self.txtExportPath.setText(file_full_path)
+            config_json.pop(0)
+            config_json.append(
+                {
+                    "Default": [str(DefaultMode[0])],
+                    "Dark": [str(DarkMode[0])],
+                    "Light": [str(LightMode[0])],
+                    "CSS": [str(CSSOn[0])],
+                    "Last Genre": [int(lastSelectedGenre[0])],
+                    "Last Theme": [str(self.comboBoxStyles.currentText())],
+                    "Last Algorithm": [int(lastSelectedAlgorithm[0])],
+                    "Default Export Path": [str(file_full_path)],
+                    "Toggle Sound On": [str(toggleSoundOn[0])]
+                })
+            with open(config_file, mode='w+', encoding='utf-8') as file:
+                json.dump(config_json, file, ensure_ascii=True, indent=4)
+            load_config_file(DefaultMode, DarkMode, LightMode, CSSOn,
+                            lastSelectedGenre, lastSelectedAlgorithm, lastSelectedTheme, defaultExportPath, toggleSoundOn)
+    
     def center(self):
         frameGm = self.frameGeometry()
         screen = QApplication.desktop().screenNumber(
@@ -1375,9 +1411,27 @@ class settingsUI(QWidget):
 alphabetList = list(ascii_lowercase) + list(ascii_uppercase)
 alphabetValList = list(i + 1 for i in range(len(alphabetList)))
 
+keys_file = os.path.dirname(os.path.realpath(__file__)) + '/keys.json'
+config_file = os.path.dirname(os.path.realpath(__file__)) + '/config.json'
+if not os.path.exists(config_file):
+    with open(config_file, 'w+') as f:
+        t = '[{"Default": ["True"],"Dark": ["False"],"Light": ["False"],"CSS": ["True"], "Last Genre": [0], "Last Algorithm": [0], "Last Theme": ["Fusion"], "Default Export Path": ["' + str(os.path.dirname(os.path.realpath(__file__)) + '/Music/') + '"], "Toggle Sound On": ["False"]}]'
+        f.write(t)
+note_types = {
+    'Semibreve': 1,  # semibreve
+    'Minim': 2,  # minim
+    'Crochet': 4,  # crochet
+    'Quaver': 8,  # quaver
+    'Semiquaver': 16,  # semiquaver
+    'Demisemiquaver': 32  # demisemiquaver
+}
+
 piano_samples = os.path.dirname(os.path.realpath(__file__)) + '/Piano Samples/'
 image_folder = os.path.dirname(os.path.realpath(__file__)) + '/Images/'
-compile_folder = os.path.dirname(os.path.realpath(__file__)) + '/Music/'
+
+with open(config_file) as file:
+    temp = json.load(file)
+    compile_folder = temp[0]['Default Export Path'][0]
 themes_folder = os.path.dirname(os.path.realpath(__file__)) + '/Themes/'
 genres_folder = os.path.dirname(os.path.realpath(__file__)) + '/Genres/'
 UI_folder = os.path.dirname(os.path.realpath(__file__)) + '/GUI/'
@@ -1400,21 +1454,7 @@ try:
     genres_file = all_genre_files[0]
 except IndexError:
     genres_file = []
-keys_file = os.path.dirname(os.path.realpath(__file__)) + '/keys.json'
-config_file = os.path.dirname(os.path.realpath(__file__)) + '/config.json'
-if not os.path.exists(config_file):
-    with open(config_file, 'w+') as f:
-        f.write(
-            '[{"Default": ["True"],"Dark": ["False"],"Light": ["False"],"CSS": ["True"], "Last Genre": [0], "Last Algorithm": [0], "Last Theme": ["Fusion"]}]')
-note_types = {
-    'Semibreve': 1,  # semibreve
-    'Minim': 2,  # minim
-    'Crochet': 4,  # crochet
-    'Quaver': 8,  # quaver
-    'Semiquaver': 16,  # semiquaver
-    'Demisemiquaver': 32  # demisemiquaver
-}
-
+    
 # NOTE JSON
 note_states = []
 genre_names = []
@@ -1446,6 +1486,8 @@ CSSOn = []
 lastSelectedGenre = []
 lastSelectedTheme = []
 lastSelectedAlgorithm = []
+defaultExportPath = []
+toggleSoundOn = []
 
 originalPalette = None
 config_json = []
@@ -1471,6 +1513,10 @@ def load_config_file(*args):
                 args[5].append(al)
             for th in config_json[0]['Last Theme']:
                 args[6].append(th)
+            for dexp in config_json[0]['Default Export Path']:
+                args[7].append(dexp)
+            for ts in config_json[0]['Toggle Sound On']:
+                args[8].append(ts)
 
 
 def exit_handler(): sys.exit()
@@ -1478,7 +1524,7 @@ def exit_handler(): sys.exit()
 
 if __name__ == '__main__':
     load_config_file(DefaultMode, DarkMode, LightMode, CSSOn,
-                     lastSelectedGenre, lastSelectedAlgorithm, lastSelectedTheme)
+                     lastSelectedGenre, lastSelectedAlgorithm, lastSelectedTheme, defaultExportPath, toggleSoundOn)
     atexit.register(exit_handler)
     app = QApplication(sys.argv)
     window = mainwindowUI()
