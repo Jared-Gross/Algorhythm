@@ -10,11 +10,12 @@
 | ------- | --- | --- |
 | Generate Audio | ✔️ | ✔️ |
 | Generate Video | ❌  | ✔️ |
-| Theme support | ❌  | ✔️ |
+| Theme support | ✔️  | ✔️ |
 
 ## Installation
 ### Windows
- - Currently in development
+Download here!
+https://drive.google.com/file/d/1IqwMJ4RBeJ685IE8fRP0bJ18oboslgtH/view?usp=sharing
 
 ### Linux
 Download this repository!
