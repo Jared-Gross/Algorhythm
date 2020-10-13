@@ -1,34 +1,32 @@
 #!/usr/bin python3
-# You should also check the file have the right to be execute. chmod +x main.py
+# You should also check the file have the right to be execute. 
+# chmod +x main.py
+
+
+'''
+To install requirements.txt run:
+pip install -r requirements.txt
+'''
+
 # pip install pywin32-ctypes
-from functools import partial
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5 import *
-from PyQt5 import uic
+import ctypes, threading, traceback, atexit, random, time, glob, json, os, qdarkgraystyle, qdarkstyle, sys
+current_platform = 'Linux' if sys.platform == "linux" or sys.platform == "linux2" else 'Windows'
+from datetime import datetime
+from string import ascii_lowercase, ascii_uppercase
+
+# Audio Imports
+# pip install pydub, playsound, pyaudio
+from playsound import playsound
+from pydub.playback import play
+from pydub import AudioSegment
+
+# Video Imports
+# pip install moviepy
 from moviepy.video.io.VideoFileClip import VideoFileClip
 from moviepy.audio.io.AudioFileClip import AudioFileClip
 from moviepy import editor
-import ctypes, threading, traceback, atexit, random, time, glob, json, os, qdarkgraystyle, qdarkstyle
-from Themes.Breeze import breeze_resources
-from playsound import playsound
-from datetime import datetime
-from string import ascii_lowercase, ascii_uppercase
-from pydub.playback import play
-from pydub import AudioSegment
-import sys
-current_platform = 'Linux' if sys.platform == "linux" or sys.platform == "linux2" else 'Windows'
-
-if current_platform == 'Windows':
-    import wave, pyaudio, win32com
-# Audio Imports
-# pip install pydub
-
-# Video Imports
 # Possible .exe build errors
 # https://stackoverflow.com/questions/44615249/attributeerror-module-object-has-no-attribute-audio-fadein
-# pip install moviepy
 # from moviepy.video.VideoClip import resize
 # from moviepy.video.VideoClip import VideoClip, ImageClip, ColorClip, TextClip
 
@@ -55,8 +53,15 @@ https://www.reddit.com/r/moviepy/comments/4nin6q/update_imagemagik_and_moviepy_h
 
 # GUI Imports
 # pip install pyqt5
+from functools import partial
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5 import *
+from PyQt5 import uic
 
 # Themes
+from Themes.Breeze import breeze_resources
 '''
 pip install qdarkgraystyle
 https://github.com/ColinDuquesnoy/QDarkStyleSheet
@@ -75,7 +80,7 @@ if current_platform == 'Linux':
     # pip install dbus-python
     import notify2 as notify
 elif current_platform == 'Windows':
-    import subprocess
+    import wave, pyaudio, win32com, subprocess
     # only works for windows
     # pip install win10toast
     from win10toast import ToastNotifier as notify
@@ -86,9 +91,6 @@ pip install pipreqs
 
 Then run:
 pipreqs /path/to/project/folder
-
-To install requirements.txt run:
-pip install -r requirements.txt
 '''
 #                     year, month, day, hour, minute, second
 #                               y   m   d  h   m  s
@@ -719,7 +721,7 @@ class mainwindowUI(QMainWindow):
             FILEBROWSER_PATH = os.path.join(os.getenv('WINDIR'), 'explorer.exe')
             path = os.path.normpath(path)
             if os.path.isdir(path):subprocess.run([FILEBROWSER_PATH, path], stdout=subprocess.PIPE, stderr=sbuprocess.PIPE, stdin=subprocess.PIPE)
-            elif os.path.isfile(path): subprocess.run([FILEBROWSER_PATH, '/select,', os.path.normpath(path)], stdout=subprocess.PIPE, stderr=sbuprocess.PIPE, stdin=subprocess.PIPE)
+            elif os.path.isfile(path): subprocess.run([FILEBROWSER_PATH, '/select,', os.path.normpath(path)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 
     def btnDeleteAllFiles(self, filesToDelete):
         self.delete_how_many_files = 0
