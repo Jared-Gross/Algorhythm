@@ -60,21 +60,21 @@ and your done, everything shoud work
       - Convert those values to the correct name files in [Piano Samples](Piano%20Samples) folder.
       - For note types (Ex. [Crochet, Minim]) we take the length of the word, for example ("bear") is 4 letters in length and 4 is closest to the value "Crochet" in our `note_types` dictionary in `main.py`
    - Mathematics algorithms:
-    - Step
-      - Step (+)
-        - Pick three random numbers (starting number, ending number, and length)
-        - Lets say starting number is 3, ending number is 7, and lenght is 8
-        - Then we evenly increase from 3 to 7 using only 8 numbers.
-          - Ex. [3, 4, 4, 5, 5, 6, 6, 7]
-        - Convert those values to the correct name files in [Piano Samples](Piano%20Samples) folder.
-        - Do the exact same method but for note types. Ex. [Crochet, Minim]
-      - Step (-)
-        - We do the exact same thing as we did in `Step (+)` except we reverse the lists.
-      - Step (Random)
-        - We do the exact same thing as we did in `Step (+)` except we randomize the lists.
-    - Random
-      - Does everything completly at random and may get removed in later versions... 
-      - *this was just a 'Proof of concept'*
+      - Step
+        - Step (+)
+          - Pick three random numbers (starting number, ending number, and length)
+          - Lets say starting number is 3, ending number is 7, and lenght is 8
+          - Then we evenly increase from 3 to 7 using only 8 numbers.
+            - Ex. [3, 4, 4, 5, 5, 6, 6, 7]
+          - Convert those values to the correct name files in [Piano Samples](Piano%20Samples) folder.
+          - Do the exact same method but for note types. Ex. [Crochet, Minim]
+        - Step (-)
+          - We do the exact same thing as we did in `Step (+)` except we reverse the lists.
+        - Step (Random)
+          - We do the exact same thing as we did in `Step (+)` except we randomize the lists.
+      - Random
+        - Does everything completly at random and may get removed in later versions... 
+        - *this was just a 'Proof of concept'*
 - TL;DR: **MAGIC!!!**
 
 
