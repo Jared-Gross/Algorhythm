@@ -59,7 +59,7 @@ and your done, everything shoud work
       - We assign every letter a number. (Ex. a = 1, c = 3, z = 26)
       - Convert those values to the correct name files in [Piano Samples](Piano%20Samples) folder.
       - For note types (Ex. [Crochet, Minim]) we take the length of the word, for example ("bear") is 4 letters in length and 4 is closest to the value "Crochet" in our `note_types` dictionary in `main.py`
-   - Mathematics algorithms:
+   - Mathematical algorithms:
       - Step
         - Step (+)
           - Pick three random numbers (starting number, ending number, and length)
