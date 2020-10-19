@@ -75,6 +75,20 @@ and your done, everything shoud work
       - Random
         - Does everything completly at random and may get removed in later versions... 
         - *this was just a 'Proof of concept'*
+      - Relation
+        - Relation (W)
+          - Pick a random starting number from 1 to 61, a random increasing amount, and a random boolean.
+          - Then if our random boolean is true, we increase our starting number by our random increasing amount
+            - Starting number = 31, Increase amount = 3, Random boolean = True.
+            - We would do 31 + 3 = 34
+          - Next we generate another random boolean and increasing amount, BUT we using our new starting number (34)
+            - Number = 34, Increase amount = 2, Random boolean = False.
+            - We would do 34 - 2 = 32.
+          - and repeat!
+        - Relation (R)
+          - This works exactly the same way as `Relation (W)` except: instead of our starting number being between 1 and 61, we generate a random starting number and ending number.
+            - (12, 45)
+          - We repeat the exact same steps as in `Relation (W)` but we stay with in the Range of these numbers.
 - TL;DR: **MAGIC!!!**
 
 
@@ -82,6 +96,7 @@ and your done, everything shoud work
 - [ ] Make pre-configured genres.
 - [x] Text to music
 - [ ] Image to music
+ - [x] Generate Perlin noise.
 - [x] Possibly make the generation process faster.
 - [x] Better visual GUI
 - [ ] Better quality sounds.
@@ -92,21 +107,28 @@ and your done, everything shoud work
 ## ToDo 
 - [ ] Add play and stop button for playing the generated Audio.
 - [ ] `.qss` for Live control buttons.
+- [ ] Try and make noise generator faster.
+- [ ] Remake entire UI and UX.
+  - Using dockable widgets.
 
 ## Bugs
 - [ ] Audio clipping with `demisemiquaver` & `semiquaver` notes.
   - Possible needs a longer fade, or better quality sounds.
 - [ ] Threads not stopping
 - [ ] Pressing live with a multiplier enabled. *(but I might leave this as a feature)*
-- [ ] Don't add live generated music to Generated list in GUI
+- [x] Don't add live generated music to Generated list in GUI
+- [ ] Live play needs a whole remake to sound similar to generated music.
+
 
 ## Credits
 [QDarkStyleSheet](https://github.com/ColinDuquesnoy/QDarkStyleSheet)
 Full credit goes to: [ColinDuquesnoy](https://github.com/ColinDuquesnoy)
 
 [qdarkgraystyle](https://github.com/mstuttgart/qdarkgraystyle)
-Full credit goes to: [mstuttgart](https://github.com/mstuttgart)
+Full credit goes to: [Michell Stuttgart](https://github.com/mstuttgart)
 
 [Breeze](https://github.com/Alexhuszagh/BreezeStyleSheets)
-Full credit goes to: [Alexhuszagh](https://github.com/Alexhuszagh)
+Full credit goes to: [Alexander Huszagh](https://github.com/Alexhuszagh)
 
+[classic, dark_blue, dark_orange](https://github.com/sommerc/pyqt-stylesheets)
+Full credit goes to: [Christoph Sommer](https://github.com/sommerc)
