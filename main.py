@@ -287,7 +287,6 @@ class GenerateThread(QThread):
         except ZeroDivisionError: stepNoteType = (endNoteType - startNoteType) / (amount_of_numbers)
         # NOTES
         numbers = []
-        step_number_notes = []
         start = random.randint(0, 60)
         if start != 60: end = random.randint(start + 1, 60)
         else: end = random.randint(start, 60)
@@ -299,7 +298,7 @@ class GenerateThread(QThread):
             if i == 1:
                 numbers.append(int(start))  # first number
                 note_types_number.append(int(startNoteType))
-            if i == 2:
+            elif i == 2:
                 numbers.append(int(start + step))  # second number
                 note_types_number.append(int(startNoteType + stepNoteType))
             if i >= 3 and i < amount_of_numbers:
@@ -310,11 +309,20 @@ class GenerateThread(QThread):
             if i == amount_of_numbers:
                 numbers.append(int(start + (amount_of_numbers - 1) * step))  # end
                 note_types_number.append(int(startNoteType + (amount_of_numbers - 1) * stepNoteType))  # end
-        closest_numbers = []
-        closest_numbers_note_types = []
-        for i, j in enumerate(numbers): closest_numbers.append(self.closest(self.all_available_notes_index, j))
-        for i, j in enumerate(note_types_number): closest_numbers_note_types.append(self.closest(self.all_available_note_types, j))
-        for i, j in enumerate(closest_numbers): step_number_notes.append(keys_json[0]['keys'][j])
+        closest_numbers = [
+            self.closest(self.all_available_notes_index, j)
+            for i, j in enumerate(numbers)
+        ]
+
+        closest_numbers_note_types = [
+            self.closest(self.all_available_note_types, j)
+            for i, j in enumerate(note_types_number)
+        ]
+
+        step_number_notes = [
+            keys_json[0]['keys'][j] for i, j in enumerate(closest_numbers)
+        ]
+
         return step_number_notes, closest_numbers_note_types
 
     def char_to_num(self, words, useLowerCase=False):
@@ -334,13 +342,15 @@ class GenerateThread(QThread):
         alphabet_notes_index = []
         alphabet_notes = []
         for i, j in enumerate(list_of_numbers):
-            temp_list = []
             alphabet_note_types.append(self.closest(self.all_available_note_types, len(j)))
-            for o, k in enumerate(j): temp_list.append(self.closest(self.all_available_notes_index, k))
+            temp_list = [
+                self.closest(self.all_available_notes_index, k)
+                for o, k in enumerate(j)
+            ]
+
             alphabet_notes_index.append(temp_list)
         for i, j in enumerate(alphabet_notes_index):
-            temp_list = []
-            for o, k in enumerate(j): temp_list.append(keys_json[0]['keys'][k])
+            temp_list = [keys_json[0]['keys'][k] for o, k in enumerate(j)]
             alphabet_notes.append(temp_list)
         return alphabet_notes, alphabet_note_types
 
@@ -419,7 +429,7 @@ class mainwindowUI(QMainWindow):
         self.genAlgorithms = self.findChild(QComboBox, 'genAlgorithms_4')
         self.genAlgorithms.setToolTip('Diffrent algorithms of music generation.')
         for i, j in enumerate(self.algorithms):
-            if i == 1 or i == 3: self.genAlgorithms.insertSeparator(i)
+            if i in [1, 3]: self.genAlgorithms.insertSeparator(i)
             self.genAlgorithms.addItem(j)
         self.genAlgorithms.currentIndexChanged.connect(self.checkAlgorithm)
         self.genAlgorithms.setToolTip('Music Generation Algorithms.')
@@ -503,7 +513,7 @@ class mainwindowUI(QMainWindow):
     def load_theme(self):
         QApplication.setPalette(QApplication.palette())
         global originalPalette
-        if originalPalette == None: originalPalette = QApplication.palette()
+        if originalPalette is None: originalPalette = QApplication.palette()
         if CSSOn[0] == 'True': self.setStyleSheet(open(themes_folder + "style.qss", "r").read())
         else: self.setStyleSheet('')
         if DefaultMode[0] == 'True':
@@ -512,7 +522,7 @@ class mainwindowUI(QMainWindow):
             QApplication.setPalette(originalPalette)
             app.setStyleSheet('')
         if LightMode[0] == 'True':
-            if lastSelectedTheme[0] == 'Fusion' or lastSelectedTheme[0] == 'windowsvista':
+            if lastSelectedTheme[0] in ['Fusion', 'windowsvista']:
                 app.setPalette(QApplication.style().standardPalette())
                 palette = QPalette()
                 gradient = QLinearGradient(0, 0, 0, 400)
@@ -529,7 +539,7 @@ class mainwindowUI(QMainWindow):
                 stream = QTextStream(file)
                 app.setStyleSheet(stream.readAll())
         if DarkMode[0] == 'True':
-            if lastSelectedTheme[0] == 'Fusion' or lastSelectedTheme[0] == 'windowsvista':
+            if lastSelectedTheme[0] in ['Fusion', 'windowsvista']:
                 palette = QPalette()
                 gradient = QLinearGradient(0, 0, 0, 400)
                 gradient.setColorAt(0.0, QColor(40, 40, 40))
@@ -577,7 +587,7 @@ class mainwindowUI(QMainWindow):
             for i, j in enumerate(keys_json[0]['keys']):
                 self.btnNote = QPushButton(j)
                 self.btnNote.setCheckable(True)
-                self.btnNote.setChecked(True if note_states[i] == 'True' else False)
+                self.btnNote.setChecked(note_states[i] == 'True')
                 self.btnNote.clicked.connect(partial(self.btnNoteClick, j, i, self.btnNote, True))
                 if '#' in j or 'b' in j:
                     self.btnNote.setToolTip(f'{j[0]} Sharp {j[2]}' if '#' in j else f'{j[0]} Flat {j[2]}')
@@ -593,7 +603,7 @@ class mainwindowUI(QMainWindow):
                 self.btnNoteType.setFixedSize(72, 72)
                 self.btnNoteType.setToolTip(j)
                 self.btnNoteType.setCheckable(True)
-                self.btnNoteType.setChecked(True if note_type_states[i] == 'True' else False)
+                self.btnNoteType.setChecked(note_type_states[i] == 'True')
                 self.btnNoteType.setIcon(QIcon(f'{image_folder}{j}.png'))
                 self.btnNoteType.setIconSize(QSize(42, 42))
                 self.btnNoteType.setObjectName("whiteOn" if note_type_states[i] == 'True' else "whiteOff")
