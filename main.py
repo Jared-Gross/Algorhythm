@@ -4,23 +4,24 @@
 
 '''
 sudo python3 -m pip install pyqt5 pydub moviepy playsound pywin32-ctypes qdarkstyle qdarkgraystyle win10toast
-
-To install requirements.txt run:
-pip install -r requirements.txt
 '''
 
 # pip install pywin32-ctypes
-import ctypes, threading, traceback, atexit, random, time, glob, json, os, qdarkgraystyle, qdarkstyle, sys, subprocess, multiprocessing
+import ctypes, threading, traceback, atexit, random, time, glob, json, os, qdarkgraystyle, qdarkstyle, sys, subprocess, multiprocessing, string
 current_platform = 'Linux' if sys.platform == "linux" or sys.platform == "linux2" else 'Windows'
 from datetime import datetime
-from string import ascii_lowercase, ascii_uppercase
-import Themes.pyqtcss as pyqtcss
+from PIL import Image, ImageChops
+import matplotlib.pyplot as plt
+import numpy as np
 
 # Audio Imports
 # pip install pydub, playsound, pyaudio
 from playsound import playsound
 from pydub.playback import play
 from pydub import AudioSegment
+
+# pip3 install git+https://github.com/pvigier/perlin-numpy
+from perlin_numpy import (generate_perlin_noise_2d, generate_fractal_noise_2d)
 
 # Video Imports
 # pip install moviepy
@@ -64,6 +65,7 @@ from PyQt5 import uic
 
 # Themes
 from Themes.Breeze import breeze_resources
+import Themes.pyqtcss as pyqtcss
 '''
 pip install qdarkgraystyle
 https://github.com/ColinDuquesnoy/QDarkStyleSheet
@@ -104,7 +106,7 @@ title = 'Algorhythm'
 version = 'v0.2'
 
 
-class GenerateThread(QThread):
+class GenerateMusicThread(QThread):
 
     generated = pyqtSignal(str, float, object, object,
                            object, object, object, object,
@@ -136,14 +138,10 @@ class GenerateThread(QThread):
         self.comboExport = comboExport
 
         self.alphabetText = alphabetText
-
+        self.noiseFileName = 'plot.png'
         self.running = True
 
     def stop(self): self.running = False
-
-    def __del__(self):
-        self.running = False
-        self.wait()
 
     def run(self):
         final_song = None
@@ -162,6 +160,8 @@ class GenerateThread(QThread):
         order_of_note_types = 0
         final_name = ''
         alphabet_finished = False
+        noise_finished = False
+
         while self.running == True:
             with open(self.genres_file) as file:
                 genres_json = json.load(file)
@@ -227,6 +227,37 @@ class GenerateThread(QThread):
                                         self.progressBar, self.buttonName, self.buttonPlay, self.buttonDelete,
                                         self.labelStatus, self.comboExport, final_name, final_song, self.info_notes,
                                         self.info_note_types, self.info_duration_per_note)
+            elif 'Relation' in self.algorithmName:
+                step_keys = []
+                step_note_keys = []
+                step_available_notes = []
+                step_available_notes_types = []
+                if not step_keys: step_keys, step_note_keys = self.getRelationNumberList()
+                for index, j in enumerate(step_note_keys):
+                    selected_note_type = step_note_keys[index]
+                    self.info_note_types.append(selected_note_type)
+                    # selected_note_type = step_available_notes_types[i]
+                    note = AudioSegment.from_mp3(f"{piano_samples}{step_keys[index]}.mp3")
+                    note = note + 3  # increase audio
+
+                    self.info_notes.append(step_keys[index])
+                    note_length = note.duration_seconds * 1000  # milliseconds
+
+                    num += 1
+                    sum_of_notes += index
+                    sum_of_note_types += selected_note_type
+
+                    note = note[:note_length / selected_note_type]
+
+                    self.info_duration_per_note.append(note.duration_seconds)
+                    if self.play_live: play(note)
+                    final_song = note if not final_song else final_song + note
+                    if i == len(step_available_notes): step_keys, step_note_keys = self.getStepNumberList()
+
+                    self.generated.emit('Status: Generating...', (final_song.duration_seconds / self.seconds * 100),
+                                        self.progressBar, self.buttonName, self.buttonPlay, self.buttonDelete,
+                                        self.labelStatus, self.comboExport, final_name, final_song, self.info_notes,
+                                        self.info_note_types, self.info_duration_per_note)
             elif self.algorithmName == 'Alphabet':
                 alpha_keys = []
                 alpha_note_keys = []
@@ -235,11 +266,9 @@ class GenerateThread(QThread):
                 for i, j in enumerate(alpha_keys):
                     for o, k in enumerate(j): final_time += 1
                 # final_time = (len(alpha_keys) + 1 * len(alpha_note_keys) + 1)
-                current = 0
                 for i, j in enumerate(alpha_keys):
                     selected_note_type = alpha_note_keys[i]
                     for o, k in enumerate(j):
-                        current += 1
                         self.info_notes.append(k)
                         note = AudioSegment.from_mp3(f"{piano_samples}{k}.mp3")
 
@@ -253,12 +282,47 @@ class GenerateThread(QThread):
                         self.info_note_types.append(selected_note_type)
                         self.info_duration_per_note.append(note.duration_seconds)
                         final_song = note if not final_song else final_song + note
-                        self.generated.emit('Status: Generating...', ((current / final_time) * 100),
+                        self.generated.emit('Status: Generating...', ((num / final_time) * 100),
                                             self.progressBar, self.buttonName, self.buttonPlay, self.buttonDelete,
                                             self.labelStatus, self.comboExport, final_name, final_song, self.info_notes,
                                             self.info_note_types, self.info_duration_per_note)
                 alphabet_finished = True
-            if not self.play_live and alphabet_finished or final_song.duration_seconds >= self.seconds:
+            elif 'Noise' in self.algorithmName or self.algorithmName == 'Image':
+                img_keys = []
+                img_note_keys = []
+                if not img_keys and 'Noise' in self.algorithmName: img_keys, img_note_keys = self.img_to_notes(self.noiseFileName)
+                elif self.algorithmName == 'Image':  img_keys, img_note_keys = self.img_to_notes('temp.png')
+
+                final_time = sum(1 for i, j in enumerate(img_keys))
+
+                for index, j in enumerate(img_keys):
+                    selected_note_type = img_note_keys[index]
+                    self.info_note_types.append(selected_note_type)
+                    # selected_note_type = step_available_notes_types[i]
+                    note = AudioSegment.from_mp3(
+                        f"{piano_samples}{img_keys[index]}.mp3")
+                    note = note + 3  # increase audio
+
+                    self.info_notes.append(img_keys[index])
+                    note_length = note.duration_seconds * 1000  # milliseconds
+
+                    num += 1
+                    sum_of_notes += index
+                    sum_of_note_types += selected_note_type
+
+                    note = note[:note_length / selected_note_type]
+
+                    self.info_duration_per_note.append(note.duration_seconds)
+                    if self.play_live:
+                        play(note)
+                    final_song = note if not final_song else final_song + note
+                    self.generated.emit(
+                        'Status: Generating...', ((num / final_time) * 100),
+                                        self.progressBar, self.buttonName, self.buttonPlay, self.buttonDelete,
+                                        self.labelStatus, self.comboExport, final_name, final_song, self.info_notes,
+                                        self.info_note_types, self.info_duration_per_note)
+                    noise_finished = True
+            if not self.play_live and alphabet_finished or noise_finished or final_song.duration_seconds >= self.seconds:
                 final_name = (f'{str(self.algorithmName)} {str(num)}{str(sum_of_notes)}{str(sum_of_note_types)}{str(int(final_song.duration_seconds))}.mp3')
                 final_song.fade_in(6000).fade_out(6000)
                 self.generated.emit('Status: Finished!', (100), self.progressBar, self.buttonName,
@@ -287,7 +351,6 @@ class GenerateThread(QThread):
         except ZeroDivisionError: stepNoteType = (endNoteType - startNoteType) / (amount_of_numbers)
         # NOTES
         numbers = []
-        step_number_notes = []
         start = random.randint(0, 60)
         if start != 60: end = random.randint(start + 1, 60)
         else: end = random.randint(start, 60)
@@ -299,7 +362,7 @@ class GenerateThread(QThread):
             if i == 1:
                 numbers.append(int(start))  # first number
                 note_types_number.append(int(startNoteType))
-            if i == 2:
+            elif i == 2:
                 numbers.append(int(start + step))  # second number
                 note_types_number.append(int(startNoteType + stepNoteType))
             if i >= 3 and i < amount_of_numbers:
@@ -310,6 +373,47 @@ class GenerateThread(QThread):
             if i == amount_of_numbers:
                 numbers.append(int(start + (amount_of_numbers - 1) * step))  # end
                 note_types_number.append(int(startNoteType + (amount_of_numbers - 1) * stepNoteType))  # end
+        closest_numbers = [
+            self.closest(self.all_available_notes_index, j)
+            for i, j in enumerate(numbers)
+        ]
+
+        closest_numbers_note_types = [
+            self.closest(self.all_available_note_types, j)
+            for i, j in enumerate(note_types_number)
+        ]
+
+        step_number_notes = [
+            keys_json[0]['keys'][j] for i, j in enumerate(closest_numbers)
+        ]
+
+        return step_number_notes, closest_numbers_note_types
+
+    def getRelationNumberList(self):
+        amount_of_numbers = random.randint(4, 10)
+        # NOTE TYPES
+        note_types_number = []
+        startNoteType = random.randint(1, 32)  # Min = 0, Max = 5
+        # NOTES
+        numbers = []
+        step_number_notes = []
+        start = random.randint(1, 57)
+        if '(R)' in self.algorithmName: end = random.randint(start + 3, 60)
+        else: end = 60
+        num = start
+        note = startNoteType
+        for i in range(amount_of_numbers):
+            increaseORdecreaseAmountNote = random.randint(1,4)
+            increaseORdecrease = not not (random.getrandbits(1))  #random() >= 0.5 #this gives us a boolean either true or false with maxinum effeciency
+            increaseORdecreaseAmountNoteType = random.randint(4,12)
+            increaseORdecreaseNoteType = not not (random.getrandbits(1)) #this gives us a boolean either true or false with maxinum effeciency
+            if increaseORdecrease == True and (num + increaseORdecreaseAmountNote) > start and (num + increaseORdecreaseAmountNote) < end: num += increaseORdecreaseAmountNote
+            elif increaseORdecrease == False and (num - increaseORdecreaseAmountNote) > start and (num - increaseORdecreaseAmountNote) < end: num -= increaseORdecreaseAmountNote
+            if increaseORdecreaseNoteType == True and (note + increaseORdecreaseAmountNoteType) < 32 and note > 1: note += increaseORdecreaseAmountNoteType
+            elif increaseORdecreaseNoteType == False and (note - increaseORdecreaseAmountNoteType) > 1 and note < 32: note -= increaseORdecreaseAmountNoteType
+            print(num)
+            numbers.append(num)
+            note_types_number.append(note)
         closest_numbers = []
         closest_numbers_note_types = []
         for i, j in enumerate(numbers): closest_numbers.append(self.closest(self.all_available_notes_index, j))
@@ -334,17 +438,98 @@ class GenerateThread(QThread):
         alphabet_notes_index = []
         alphabet_notes = []
         for i, j in enumerate(list_of_numbers):
-            temp_list = []
             alphabet_note_types.append(self.closest(self.all_available_note_types, len(j)))
-            for o, k in enumerate(j): temp_list.append(self.closest(self.all_available_notes_index, k))
+            temp_list = [self.closest(self.all_available_notes_index, k) for o, k in enumerate(j)]
             alphabet_notes_index.append(temp_list)
         for i, j in enumerate(alphabet_notes_index):
-            temp_list = []
-            for o, k in enumerate(j): temp_list.append(keys_json[0]['keys'][k])
+            temp_list = [keys_json[0]['keys'][k] for o, k in enumerate(j)]
             alphabet_notes.append(temp_list)
         return alphabet_notes, alphabet_note_types
 
+    def img_to_notes(self, filename):
+        im = Image.open(filename)
+        im_data = np.asarray(im)
+        x = im_data
+        y = np.where(x[:, :, 3] > 0.5)
+        res = x[y][:, 0:3]
+        fixedRangeMin = 0
+        fixedRangeMax = 255*3
+        minAmountOfNotes = self.all_available_notes_index[0]
+        maxAmountOfNotes = self.all_available_notes_index[-1]
+        minAmountOfNoteTypes = self.all_available_note_types[0]
+        maxAmountOfNoteTypes = self.all_available_note_types[-1]
+        notes_value = [int(minAmountOfNotes + ((sum(row) - fixedRangeMin) / (fixedRangeMax - fixedRangeMin)) * (maxAmountOfNotes - minAmountOfNotes)) for row in res]
+        note_types_value = [int(minAmountOfNoteTypes + ((sum(row) - fixedRangeMin) / (fixedRangeMax - fixedRangeMin)) * (maxAmountOfNoteTypes - minAmountOfNoteTypes)) for row in res]
+        closest_numbers = [self.closest(self.all_available_notes_index, j) for i, j in enumerate(notes_value)]
+        closest_numbers_note_types = [self.closest(self.all_available_note_types, j) for i, j in enumerate(note_types_value)]
+        noise_number_notes = [keys_json[0]['keys'][j] for i, j in enumerate(closest_numbers)]
+        return noise_number_notes, closest_numbers_note_types
+
     def closest(self, lst, K): return lst[min(range(len(lst)), key=lambda i: abs(lst[i] - K))]
+
+    def __del__(self):
+        self.running = False
+        self.wait()
+
+class GeneratePerlinThread(QThread):
+
+    generated = pyqtSignal()
+
+    def __init__(self, file_name, imgSize, scale, noise, seed, seedChecked, lblPreview, genAlgorithms):
+        QThread.__init__(self)
+        self.perlinFilename = file_name
+        self.ImageSize = imgSize
+        self.PerlinNoisiness = noise
+        self.PerlinScale = scale
+        self.seedChecked = seedChecked
+        self.PerlinSeed = seed
+        self.imagePreview = lblPreview
+        self.genAlgorithms = genAlgorithms
+        self.running = True
+
+    def run(self):
+        while self.running:
+            try:
+                smooth = 'Perlin' in self.genAlgorithms.currentText()
+                if self.seedChecked.isChecked(): np.random.seed(random.randint(1, 10000))
+                else: np.random.seed(self.PerlinSeed)
+                noise = (self.PerlinNoisiness, self.PerlinNoisiness)
+                scale = (self.PerlinScale, self.PerlinScale)
+                if smooth: noise = generate_perlin_noise_2d(scale, noise)
+                else: noise = generate_fractal_noise_2d(scale, noise, 5)
+
+                plt.imshow(noise, cmap='gray', interpolation='lanczos')
+                plt.xticks([])
+                plt.yticks([])
+                plt.savefig(self.perlinFilename, bbox_inches='tight', dpi=100)
+
+                self.trim(Image.open(self.perlinFilename)).save(self.perlinFilename)
+                resize_size=(self.ImageSize, self.ImageSize)
+                Image.open(self.perlinFilename).resize(resize_size).save(self.perlinFilename)
+                self.updatePerlinPreview()
+                self.stop()
+            except: self.generated.emit()
+
+    def stop(self): self.running = False
+
+    def trim(self, im):
+        bg = Image.new(im.mode, im.size, im.getpixel((0, 0)))
+        diff = ImageChops.difference(im, bg)
+        diff = ImageChops.add(diff, diff, 2.0, -100)
+        bbox = diff.getbbox()
+        if bbox: return im.crop(bbox)
+
+    def updatePerlinPreview(self):
+        pixmap = QPixmap(self.perlinFilename)
+        pixmap = pixmap.scaled(256, 256, Qt.KeepAspectRatio, Qt.FastTransformation)
+        self.imagePreview.setPixmap(pixmap)
+        self.imagePreview.resize(pixmap.width(),pixmap.height())
+        self.generated.emit()
+        self.stop()
+
+    def __del__(self):
+        self.running = False
+        self.wait()
 
 class mainwindowUI(QMainWindow):
 
@@ -356,41 +541,122 @@ class mainwindowUI(QMainWindow):
         if current_platform == 'Windows':
             appid = u'{}.{}.{}'.format(company, title, version)
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(appid)
-        self.show()
-        self.center()
         self.load_theme()
-
         self.load_VAR()
         self.load_UI()
         self.UINotes()
         self.updateNotes()
         self.checkAlgorithm()
-        self.setFixedSize(810, 590)
+        self.setFixedSize(900, 600)
+        self.center()
+        self.show()
+        if 'Noise' in self.genAlgorithms.currentText(): self.sliderANDinputValueChange()
 
     def load_UI(self):
-        self.miscLabels = []
-        self.label_8 = self.findChild(QLabel, 'label_8')
-        self.label_7 = self.findChild(QLabel, 'label_7')
-        self.miscLabels.append(self.label_7)
-        self.miscLabels.append(self.label_8)
 
-        self.btnGenerate = self.findChild(QPushButton, 'btnGenerate_2')
-        self.btnGenerate.clicked.connect(partial(self.btnGenerateClicked, False))
-        self.btnGenerate.setToolTip('Start generating music.')
+        '''-----------------------------------STACKED WIDGETS--------------------------------------'''
+
+        self.stackedWidget = self.findChild(QStackedWidget, 'stackedWidget')
+        self.stackedWidget.addWidget (self.findChild(QWidget, 'page_1'))
+        self.stackedWidget.addWidget (self.findChild(QWidget, 'page_3'))
+        self.stackedWidget.addWidget (self.findChild(QWidget, 'page_4'))
+        self.stackedWidget.setCurrentIndex(0)
+        # self.dockWidgetControls = self.findChild(QDockWidget,'dockWidgetControls')
+        # self.dockWidgetSettings = self.findChild(QDockWidget,'dockWidgetSettings')
+        # self.dockWidgetSettings.close()
+
+        '''-----------------------------------LIST WIDGET--------------------------------------'''
+
+        self.listWidgetModes = self.findChild(QListWidget, 'listWidgetModes')
+        self.listWidgetModes.addItems(['Generate', 'Settings', 'Generated'])
+        self.listWidgetModes.currentRowChanged.connect(self.listWidgetClicked)
+
+        self.miscLabels = []
+        self.miscLabels.append(self.findChild(QLabel, 'label_8'))
+        self.miscLabels.append(self.findChild(QLabel, 'label_7'))
+
+        '''-----------------------------------IMAGE GEN--------------------------------------'''
+
+        self.CustomImageControl = self.findChild(QFrame, 'CustomImageControl')
+
+        self.verticalLayout_9 = self.findChild(QVBoxLayout, 'verticalLayout_9')
+
+
+        # self.customImagePreview = self.findChild(QLabel, 'lblCustomImage')
+
+        self.sliderCustomImgSize = self.findChild(
+            QSlider, 'sliderCustomImgSize')
+        self.sliderCustomImgSize.valueChanged.connect(self.customImageResize)
+        self.inputCustomImgSize = self.findChild(QSpinBox, 'inputCustomImgSize')
+
+        self.customImagePreview = CustomImage(self.sliderCustomImgSize)
+        self.customImagePreview.setText('Drag and Drop and image here.')
+        self.customImagePreview.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.customImagePreview.setAlignment(Qt.AlignCenter)
+        self.verticalLayout_9.addWidget(self.customImagePreview)
+
+        '''-----------------------------------NOISE GEN--------------------------------------'''
+
+        self.noiseControls = self.findChild(QFrame, 'NoiseControl')
+
+        self.sliderNoiseImgSize = self.findChild(QSlider, 'sliderNoiseImgSize')
+        self.inputNoiseImgSize = self.findChild(QSpinBox, 'inputNoiseImgSize')
+        self.sliderNoiseImgSize.sliderReleased.connect(self.sliderANDinputValueChange)
+        self.sliderNoiseImgSize.valueChanged.connect(self.sliderUpdateInputs)
+
+        self.sliderNoisiness = self.findChild(QSlider, 'sliderNoisiness')
+        self.inputNoisiness = self.findChild(QSpinBox, 'inputNoisiness')
+        self.sliderNoisiness.sliderReleased.connect(self.sliderANDinputValueChange)
+        self.sliderNoisiness.valueChanged.connect(self.sliderUpdateInputs)
+
+        self.sliderScale = self.findChild(QSlider, 'sliderScale')
+        self.inputScale = self.findChild(QSpinBox, 'inputScale')
+        self.sliderScale.sliderReleased.connect(self.sliderANDinputValueChange)
+        self.sliderScale.valueChanged.connect(self.sliderUpdateInputs)
+
+        self.inputPerlinSeed = self.findChild(QSpinBox, 'inputPerlinSeed')
+        self.inputPerlinSeed.setToolTip('Leave at "0" to use a random one.')
+        self.inputPerlinSeed.valueChanged.connect(self.sliderANDinputValueChange)
+
+        self.imagePreview = self.findChild(QLabel, 'lblImagePreview')
+
+        # self.imagePreview.setStyleSheet('border-radius: 3px; border-style: none; border: 1px solid black; background-color: rgb(10,10,10);')
+        self.imagePreview.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.imagePreview.setAlignment(Qt.AlignCenter)
+
+        self.checkBoxRandomPerlinSeed = self.findChild(QCheckBox, 'checkBoxRandomPerlinSeed')
+        self.checkBoxRandomPerlinSeed.toggled.connect(self.sliderANDinputValueChange)
+
+        '''-----------------------------------LIVE CONTROLS--------------------------------------'''
+
+        self.liveControls = self.findChild(QFrame, 'LiveControl_2')
 
         self.btnLiveStart = self.findChild(QPushButton, 'btnLiveStart')
-        self.btnLiveStart.setIcon(self.style().standardIcon(getattr(QStyle, 'SP_MediaPlay')))
-        self.btnLiveStart.clicked.connect(partial(self.btnGenerateClicked, True))
+        self.btnLiveStart.setIcon(self.style().standardIcon(
+            getattr(QStyle, 'SP_MediaPlay')))
+        self.btnLiveStart.clicked.connect(
+            partial(self.btnGenerateClicked, True))
 
         self.btnLiveStop = self.findChild(QPushButton, 'btnLiveStop')
-        self.btnLiveStop.setIcon(self.style().standardIcon(getattr(QStyle, 'SP_MediaStop')))
+        self.btnLiveStop.setIcon(self.style().standardIcon(
+            getattr(QStyle, 'SP_MediaStop')))
         self.btnLiveStop.clicked.connect(self.stop_generation_threads)
         self.btnLiveStop.setEnabled(False)
 
-        self.generatedMusicLayout = self.findChild(QFrame, 'generatedMusicLayout_2')
+        '''-----------------------------------MUSIC CONTROLS--------------------------------------'''
+
+        self.musicControl = self.findChild(QFrame, 'MusicControl')
+
+        self.btnGenerate = self.findChild(QPushButton, 'btnGenerate_2')
+        self.btnGenerate.clicked.connect(
+            partial(self.btnGenerateClicked, False))
+        self.btnGenerate.setToolTip('Start generating music.')
+
+
+        self.generatedMusicLayout = self.findChild(
+            QFrame, 'generatedMusicLayout_2')
         self.generatedMusicLayout.setHidden(True)
 
-        self.liveControls = self.findChild(QFrame, 'LiveControl')
 
         self.btnDeleteAll = self.findChild(QPushButton, 'btnDeleteAll')
         self.btnDeleteAll.clicked.connect(partial(self.btnDeleteAllFiles, self.btnDeleteAllList))
@@ -400,6 +666,7 @@ class mainwindowUI(QMainWindow):
         self.alphabetText = self.findChild(QTextEdit, 'alphabetText')
         self.alphabetText.setHidden(True)
         self.alphabetText.setPlaceholderText("Enter some text here...")
+
 
         self.btnCancelThreads = self.findChild(QPushButton, 'btnCancelThreads')
         self.btnCancelThreads.clicked.connect(self.stop_generation_threads)
@@ -413,13 +680,15 @@ class mainwindowUI(QMainWindow):
 
         self.lblInputSongLength = self.findChild(QLabel, 'label_3')
 
-        self.inputSongLength = self.findChild(
-            QDoubleSpinBox, 'inputSongLength_4')
+        self.inputSongLength = self.findChild(QDoubleSpinBox, 'inputSongLength_4')
+
+        '''-----------------------------------MUSIC SETTINGS--------------------------------------'''
 
         self.genAlgorithms = self.findChild(QComboBox, 'genAlgorithms_4')
         self.genAlgorithms.setToolTip('Diffrent algorithms of music generation.')
         for i, j in enumerate(self.algorithms):
-            if i == 1 or i == 3: self.genAlgorithms.insertSeparator(i)
+            if i == 1 or i == 5 or i == 7: self.genAlgorithms.insertSeparator(i)
+            elif i == 9: self.genAlgorithms.insertSeparator(i + 1)
             self.genAlgorithms.addItem(j)
         self.genAlgorithms.currentIndexChanged.connect(self.checkAlgorithm)
         self.genAlgorithms.setToolTip('Music Generation Algorithms.')
@@ -438,12 +707,14 @@ class mainwindowUI(QMainWindow):
         self.NoteTypeGridLayout = self.findChild(QGridLayout, 'NoteTypeGridLayout')
         self.gridMusicProgressGridLayout = self.findChild(QGridLayout, 'gridMusicProgress')
 
+        '''-----------------------------------TOOL BAR--------------------------------------'''
+
         self.actionExport = self.findChild(QAction, 'actionExport')
         self.actionExport.setStatusTip('Export all saved genres to *.csv')
 
-        self.actionPrefrences = self.findChild(QAction, 'actionTheme')
-        self.actionPrefrences.setStatusTip('Change window settings.')
-        self.actionPrefrences.triggered.connect(self.open_settings_window)
+        self.actionPreferences = self.findChild(QAction, 'actionTheme')
+        self.actionPreferences.setStatusTip('Change window settings.')
+        self.actionPreferences.triggered.connect(self.open_settings_window)
 
         self.actionAbout_Qt = self.findChild(QAction, 'actionAbout_Qt')
         self.actionAbout_Qt.triggered.connect(qApp.aboutQt)
@@ -453,6 +724,8 @@ class mainwindowUI(QMainWindow):
 
         self.actionLicense = self.findChild(QAction, 'actionLicense')
         self.actionLicense.triggered.connect(self.open_license_window)
+
+        '''-----------------------------------TRAY--------------------------------------'''
 
         # Adding item on the menu bar
         # self.tray = QSystemTrayIcon()
@@ -480,13 +753,23 @@ class mainwindowUI(QMainWindow):
         self.tray_icon.show()
 
     def load_VAR(self):
-        self.algorithms = ['Random', 'Step (+)', 'Step (-)', 'Step Random', 'Alphabet']
+        self.algorithms = ['Random', 'Step (+)', 'Step (-)', 'Step Random', 'Alphabet', 'Relation (W)', 'Relation (R)', 'Perlin Noise', 'Fractal Noise', 'Image']
         self.algorithms.sort()
         self.mulitpliers = ['1', '2', '5', '10']
+        self.perlinUsableValues = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
         self.audioPlaying = False
         self.process = []
 
+        # PERLIN NOISE VARIABLES
+        self.ImageSize = 0
+        self.PerlinNoisiness = 0
+        self.PerlinScale = 0
+        self.PerlinSeed = 0
+        self.perlinFilename = 'plot.png'
+
         self.threads = []
+        self.perlinThreads = []
+
         self.btnDeleteAllList = []
         self.delete_how_many_files = 0
         self.genres_folder = genres_folder
@@ -601,7 +884,77 @@ class mainwindowUI(QMainWindow):
                 self.btnNoteType.clicked.connect(partial(self.btnNoteClick, j, i, self.btnNoteType, False))
                 self.NoteTypeGridLayout.setColumnStretch(0, 3)
                 self.NoteTypeGridLayout.addWidget(self.btnNoteType, i / 2, i % 2)
-        except: pass #dont worry...
+        except: pass # dont worry...
+
+    def customImageResize(self):
+        global custom_image_path
+        self.inputCustomImgSize.setValue(self.sliderCustomImgSize.value())
+
+        resize_size = (self.sliderCustomImgSize.value(),
+                       self.sliderCustomImgSize.value())
+        Image.open(custom_image_path).resize(resize_size).save('temp.png')
+        pixmap = QPixmap('temp.png')
+        pixmap = pixmap.scaled(
+            200, 200, Qt.KeepAspectRatio, Qt.FastTransformation)
+        self.customImagePreview.setPixmap(pixmap)
+        self.customImagePreview.resize(pixmap.width(), pixmap.height())
+
+    def sliderUpdateInputs(self):
+        self.inputScale.setValue(self.sliderScale.value())
+        self.inputNoiseImgSize.setValue(self.sliderNoiseImgSize.value())
+        self.inputNoisiness.setValue(self.sliderNoisiness.value())
+
+    def sliderANDinputValueChange(self):
+        if 'Noise' not in self.genAlgorithms.currentText(): return
+        self.PerlinSeed = self.inputPerlinSeed.value()
+        self.PerlinScale = self.closest(self.perlinUsableValues, self.sliderScale.value())
+        self.PerlinNoisiness = self.closest(self.perlinUsableValues, self.sliderNoisiness.value())
+        self.ImageSize = self.sliderNoiseImgSize.value()
+
+        self.inputNoiseImgSize.setValue(self.ImageSize)
+        self.inputScale.setValue(self.PerlinScale)
+        self.inputNoisiness.setValue(self.PerlinNoisiness)
+
+        self.sliderNoiseImgSize.setValue(self.ImageSize)
+        self.sliderScale.setValue(self.PerlinScale)
+        self.sliderNoisiness.setValue(self.PerlinNoisiness)
+
+        self.setCursor(Qt.BusyCursor)
+        self.sliderNoiseImgSize.setEnabled(False)
+        self.sliderScale.setEnabled(False)
+        self.sliderNoisiness.setEnabled(False)
+        self.inputPerlinSeed.setEnabled(False)
+        if self.PerlinNoisiness < self.PerlinScale:
+            if self.PerlinNoisiness == 16 and self.PerlinScale == 128:
+                self.PerlinNoisiness = 8
+                self.sliderNoisiness.setValue(self.PerlinNoisiness)
+                self.inputNoisiness.setValue(self.PerlinNoisiness)
+                self.sliderANDinputValueChange()
+                return
+            generatePerlin = GeneratePerlinThread(self.perlinFilename, self.ImageSize, self.PerlinScale, self.PerlinNoisiness, self.PerlinSeed, self.checkBoxRandomPerlinSeed, self.imagePreview, self.genAlgorithms)
+            generatePerlin.generated.connect(self.finished_generating_perlin)
+            self.perlinThreads.append(generatePerlin)
+            generatePerlin.start()
+        else:
+            for i, j in enumerate(self.perlinUsableValues):
+                if j == self.PerlinScale:
+                    self.PerlinNoisiness = self.closest(self.perlinUsableValues, self.perlinUsableValues[i - 1])
+                    self.sliderNoisiness.setValue(self.PerlinNoisiness)
+                    self.inputNoisiness.setValue(self.PerlinNoisiness)
+                    self.sliderANDinputValueChange()
+            # t = threading.Thread(target=self.generatePerlinMap)
+            # t.start()
+            # self.updatePerlinPreview()
+            # self.generatePerlinMap()
+
+    def finished_generating_perlin(self):
+        self.unsetCursor()
+        self.sliderNoiseImgSize.setEnabled(True)
+        self.sliderScale.setEnabled(True)
+        self.sliderNoisiness.setEnabled(True)
+        self.inputPerlinSeed.setEnabled(True)
+        for perlinthread in self.perlinThreads: perlinthread.stop()
+        self.perlinThreads.clear()
 
     def btnNoteClick(self, name, index, state, play):
         global genres_json, note_states, note_type_states
@@ -643,7 +996,7 @@ class mainwindowUI(QMainWindow):
             self.process.clear()
         self.audioPlaying = not self.audioPlaying
 
-    # TODO This still needs work and possible modifacations to pydub libraries
+    # TODO This still needs work and possible modifications to pydub libraries
     def threadPlayMedia(self, audio_file, file_name):
         try:
             playAudioOnce = False
@@ -686,9 +1039,10 @@ class mainwindowUI(QMainWindow):
         QMessageBox.critical(self, f'{title}', f"{text}", QMessageBox.Ok, QMessageBox.Ok)
 
     def btnGenerateClicked(self, play_live):
+        global total
         all_available_notes = []
         all_available_note_types = []
-        if not play_live: self.liveControls.setHidden(True)
+        # if not play_live: self.liveControls.setHidden(True)
         try:
             with open(genres_file) as file:
                 genres_json = json.load(file)
@@ -700,22 +1054,22 @@ class mainwindowUI(QMainWindow):
             ret = QMessageBox.warning(self, 'No genre files', "Must create a genere file to generate music.\n\nWould you like to create a genre?", QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel, QMessageBox.Cancel)
             if ret == QMessageBox.Yes: self.createGenere()
             return
-        if self.genAlgorithms.currentText() == 'Alphabet' and self.alphabetText.toPlainText() == '' or self.alphabetText.toPlainText() == ' ':
-            self.OpenErrorDialog('No text', 'No text to generate music, must have atleast one charecter')
+        if self.genAlgorithms.currentText() == 'Alphabet' and not self.alphabetText.toPlainText().upper().isupper():
+            self.OpenErrorDialog('No text', 'No text to generate music, must have at least one charecter')
             return
-        if len(all_available_notes) == 0:
-            self.OpenErrorDialog('No notes', 'No notes to select, must have atleast one.')
+        elif not all_available_notes:
+            self.OpenErrorDialog('No notes', 'No notes to select, must have at least one.')
             return
-        if len(all_available_note_types) == 0:
-            self.OpenErrorDialog('No note types', 'No note types to select, must have atleast one.')
+        elif not all_available_note_types:
+            self.OpenErrorDialog('No note types', 'No note types to select, must have at least one.')
             return
-        if len(all_available_note_types) > 0 and len(all_available_notes) > 0:
+        else:
             self.btnDeleteAll.setEnabled(False)
             self.btnClear.setEnabled(False)
             for i, j in enumerate(range(int(self.comboMultiplier.currentText()))):
-                global total
                 total += 1
                 self.progressBar = QProgressBar()
+
                 self.btnDelete = QPushButton()
                 self.btnDelete.setIcon(self.style().standardIcon(getattr(QStyle, 'SP_DialogDiscardButton')))
                 self.btnDelete.setEnabled(False)
@@ -736,7 +1090,6 @@ class mainwindowUI(QMainWindow):
                 self.comboExport.addItem('Save As...')
                 self.comboExport.addItem('Audio')
                 if current_platform == 'Linux': self.comboExport.addItem('Video')
-                # self.comboExport.addItem('')
 
                 if not play_live:
                     self.gridMusicProgressGridLayout.addWidget(self.btnName, total, 0)
@@ -745,14 +1098,18 @@ class mainwindowUI(QMainWindow):
                     self.gridMusicProgressGridLayout.addWidget(self.btnPlay, total, 3)
                     self.gridMusicProgressGridLayout.addWidget(self.btnDelete, total, 4)
                     self.gridMusicProgressGridLayout.addWidget(self.comboExport, total, 5)
-
-                threading.Thread(target=self.generate_song, args=(play_live, self.progressBar, self.btnName, self.btnPlay, self.btnDelete, self.lblStatus, self.comboExport,)).start()
-
                 loop = QEventLoop()
                 QTimer.singleShot(10, loop.quit)
                 loop.exec_()
-        self.btnLiveStop.setEnabled(True)
-        self.btnLiveStart.setEnabled(False)
+
+                threading.Thread(target=self.generate_song, args=(play_live, self.progressBar, self.btnName, self.btnPlay, self.btnDelete, self.lblStatus, self.comboExport,)).start()
+
+        if not play_live:
+            self.listWidgetClicked(2)
+            self.listWidgetModes.setCurrentRow(2)
+        else:
+            self.btnLiveStop.setEnabled(True)
+            self.btnLiveStart.setEnabled(False)
 
     def btnOpenPath(self, path):
         if current_platform == 'Linux': wb.open(path)
@@ -846,13 +1203,16 @@ class mainwindowUI(QMainWindow):
         except IndexError:
             self.genresComboBox.addItem('')
             self.genresComboBox.addItem('Create')
-            self.genresComboBox.setItemIcon(index + 1, QIcon(image_folder + 'Create.png'))
+            self.genresComboBox.setItemIcon(index + 1, QIcon(self.style().standardIcon(getattr(QStyle, 'SP_FileDialogNewFolder'))))
             return
         self.genresComboBox.insertSeparator(index + 1)
         self.genresComboBox.addItem('Create')
-        self.genresComboBox.setItemIcon(index + 1, QIcon(image_folder + 'Create.png'))
+        # self.genresComboBox.setItemIcon(index + 1, QIcon(image_folder + 'Create.png'))
+        self.genresComboBox.setItemIcon(index + 1, QIcon(self.style().standardIcon(getattr(QStyle, 'SP_FileDialogNewFolder'))))
         self.genresComboBox.addItem('Delete')
-        self.genresComboBox.setItemIcon(index + 2, QIcon(image_folder + 'Delete.png'))
+        #
+        self.genresComboBox.setItemIcon(index + 2, QIcon(self.style().standardIcon(getattr(QStyle, 'SP_DialogDiscardButton'))))
+        # self.genresComboBox.setItemIcon(index + 2, QIcon(image_folder + 'Delete.png'))
         self.genresComboBox.setIconSize(QSize(20, 20))
         # self.UINotes()
 
@@ -904,12 +1264,46 @@ class mainwindowUI(QMainWindow):
             self.inputSongLength.setHidden(True)
             self.lblInputSongLength.setHidden(True)
             self.liveControls.setHidden(True)
+            self.imagePreview.setHidden(True)
+            self.noiseControls.setHidden(True)
+            self.musicControl.setHidden(False)
+            self.CustomImageControl.setHidden(True)
+        elif 'Noise' in self.genAlgorithms.currentText():
+            self.alphabetText.setHidden(True)
+            [img.setHidden(True) for img in self.miscLabels]
+            self.inputSongLength.setHidden(True)
+            self.lblInputSongLength.setHidden(True)
+            self.liveControls.setHidden(True)
+            self.imagePreview.setHidden(False)
+            self.musicControl.setHidden(False)
+            self.noiseControls.setHidden(False)
+            self.CustomImageControl.setHidden(True)
+            self.sliderNoisiness.setMaximum(16 if 'Fractal' in self.genAlgorithms.currentText() else 512)
+            self.sliderScale.setMinimum(128 if 'Fractal' in self.genAlgorithms.currentText() else 2)
+            self.sliderScale.setHidden('Fractal' in self.genAlgorithms.currentText())
+            self.inputScale.setHidden('Fractal' in self.genAlgorithms.currentText())
+            self.findChild(QLabel, 'label_11').setHidden('Fractal' in self.genAlgorithms.currentText())
+            self.sliderANDinputValueChange()
+        elif 'Image' in self.genAlgorithms.currentText():
+            self.alphabetText.setHidden(True)
+            [img.setHidden(True) for img in self.miscLabels]
+            self.inputSongLength.setHidden(True)
+            self.lblInputSongLength.setHidden(True)
+            self.liveControls.setHidden(True)
+            self.imagePreview.setHidden(True)
+            self.musicControl.setHidden(False)
+            self.noiseControls.setHidden(True)
+            self.CustomImageControl.setHidden(False)
         else:
             self.alphabetText.setHidden(True)
             [img.setHidden(False) for img in self.miscLabels]
             self.inputSongLength.setHidden(False)
             self.lblInputSongLength.setHidden(False)
             self.liveControls.setHidden(False)
+            self.imagePreview.setHidden(True)
+            self.noiseControls.setHidden(True)
+            self.musicControl.setHidden(False)
+            self.CustomImageControl.setHidden(True)
 
         config_json.pop(0)
         config_json.append(
@@ -956,19 +1350,21 @@ class mainwindowUI(QMainWindow):
     def start_generation(self, play_live, progressBar, buttonName, buttonPlay, buttonDelete, labelStatus, comboExport):
         self.generatedMusicLayout.setHidden(play_live)
         # self.thread.clear()
-        generator = GenerateThread(self.alphabetText, play_live, genres_file, self.inputSongLength.text(), note_types, keys_json, note_states, note_type_states,
+        generator = GenerateMusicThread(self.alphabetText, play_live, genres_file, self.inputSongLength.text(), note_types, keys_json, note_states, note_type_states,
                                    self.genAlgorithms.currentText(), self.genresComboBox.currentText(), progressBar, buttonName, buttonPlay, buttonDelete, labelStatus, comboExport)
         generator.generated.connect(self.on_data_ready)
         self.threads.append(generator)
         generator.start()
 
+    @pyqtSlot(str, float, object, object,
+              object, object, object, object,
+              str, object, list, list, list)
     def on_data_ready(self, lblStatus, progress, progressBar, buttonName, buttonPlay, buttonDelete, labelStatus, comboExport, final_name, audio_file, info_notes, info_note_types, info_duration_per_note):
         try:
             labelStatus.setText(lblStatus)
             progressBar.setValue(progress)
             if progress == 100 and lblStatus == 'Status: Finished!':
-                temp_list = []
-                temp_list.append(compile_folder + final_name)
+                temp_list = [compile_folder + final_name]
                 self.btnDeleteAllList.append(temp_list)
                 self.unsetCursor()
                 name = final_name.replace('.mp3', '')
@@ -1019,6 +1415,7 @@ class mainwindowUI(QMainWindow):
                                                               directoryAndFile, file_extension, audio_file,
                                                               info_notes, info_note_types, info_duration_per_note,)).start()
 
+    # TODO make video export work without third party software
     def exportFilesThread(self, comboExport, labelStatus, buttonName, file_name, file_extension, audio_file, info_notes, info_note_types, info_duration_per_note):
         width = 640
         height = 360
@@ -1069,6 +1466,8 @@ class mainwindowUI(QMainWindow):
         for key, value in note_types.items():
             if val == value: return key
 
+    def closest(self, lst, K): return lst[min(range(len(lst)), key=lambda i: abs(lst[i] - K))]
+
     def generate_song(self, play_live, progressBar, buttonName, buttonPlay, buttonDelete, labelStatus, comboExport):
         if not play_live: self.setCursor(Qt.BusyCursor)
         self.start_generation(play_live, progressBar, buttonName, buttonPlay, buttonDelete, labelStatus, comboExport)
@@ -1079,6 +1478,8 @@ class mainwindowUI(QMainWindow):
         total = 0
         self.clearLayout(self.gridMusicProgress)
         self.reload_config_file()
+
+    def listWidgetClicked(self,i): self.stackedWidget.setCurrentIndex(i)
 
     def open_settings_window(self):
         self.settingsUI = settingsUI(self)
@@ -1299,9 +1700,33 @@ class settingsUI(QWidget):
 
     def closeEvent(self, event): self.close()
 
+class CustomImage(QLabel):
+    def __init__(self, slider):
+        super().__init__()
+        self.setAcceptDrops(True)
+        self.slider = slider
 
-alphabetList = list(ascii_lowercase) + list(ascii_uppercase)
-alphabetValList = list(i + 1 for i in range(len(alphabetList)))
+    def dragEnterEvent(self, e):
+        m = e.mimeData()
+        if m.hasUrls(): e.accept()
+        else: e.ignore()
+
+    def dropEvent(self, e):
+        global custom_image_path
+        m = e.mimeData()
+        if m.hasUrls(): custom_image_path = m.urls()[0].toString().replace('file://', '')
+        resize_size = (self.slider.value(),
+                       self.slider.value())
+        Image.open(custom_image_path).resize(resize_size).save('temp.png')
+        pixmap = QPixmap('temp.png')
+        pixmap = pixmap.scaled(
+            200, 200, Qt.KeepAspectRatio, Qt.FastTransformation)
+        self.setPixmap(pixmap)
+        self.resize(pixmap.width(), pixmap.height())
+
+
+alphabetList = list(string.ascii_lowercase + string.ascii_uppercase)
+alphabetValList = [i + 1 for i in range(len(alphabetList))]
 
 UI_folder = os.path.dirname(os.path.realpath(__file__)) + '/GUI/'
 keys_file = os.path.dirname(os.path.realpath(__file__)) + '/keys.json'
@@ -1381,6 +1806,7 @@ toggleSoundOn = []
 
 originalPalette = None
 
+custom_image_path = ''
 
 def load_config_file(*args):
     global config_json
