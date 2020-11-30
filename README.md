@@ -40,7 +40,7 @@ sudo apt-get install imagemagick
 sudo apt-get update
 sudo apt-get upgrade
 ```
-If moviepy still has running properly do the following:
+If moviepy throws an error do the following:
 go to:
 
 `/etc/ImageMagick-6/policy.xml`
@@ -50,6 +50,8 @@ Near the bottom there is this line:
 `<!-- <policy domain="path" rights="none" pattern="@*" /> -->`
 
 comment that out or delete it.
+
+That fixes it.
 
 Install LilyPond with **Linux**:
 `sudo apt install lilypond`
