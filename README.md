@@ -167,3 +167,6 @@ Full credit goes to: [Alexander Huszagh](https://github.com/Alexhuszagh)
 
 [classic, dark_blue, dark_orange](https://github.com/sommerc/pyqt-stylesheets)
 Full credit goes to: [Christoph Sommer](https://github.com/sommerc)
+
+[Perlin-Numpy](https://github.com/pvigier/perlin-numpy)
+Full credit goes to: [Pierre Vigier](https://github.com/pvigier)
