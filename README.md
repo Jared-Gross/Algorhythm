@@ -73,14 +73,16 @@ and your done, everything shoud work
           - We read all those pixels and store them into a `numpy` array. These arrays are **NOT** in `bytes` but in `RGB`. With these RGB values, we map them between 0 and 765 *(because 255x3=765, our `RGB` values can't be greater then this value, The color would have to be white (255, 255, 255) to reach this maxinum value)*
           - After that, we map those numbers between the amount of notes we have. Say for example, our current pixel is (146, 242, 10) in the range between 0-765 this number is 398. Knowing these three numbers, we can map it between 0-61, which is the amount of notes we have. 
           - After the above, we know that our pixel is 398 in the range of: 0-765, But this doesn't tell us what note we need to play, so we need to scale this down to a range of 0-61, we achieve this with: `notes_value = [int(minAmountOfNotes + ((sum(row) - fixedRangeMin) / (fixedRangeMax - fixedRangeMin)) * (maxAmountOfNotes - minAmountOfNotes)) for row in res]` A better snippet of this is as the following: 
-          ```python 
-          fixedRangeMin = 0
-          fixedRangeMax = 255*3
-          minAmountOfNotes = 0
-          maxAmountOfNotes = 61
-          sum = 398 # sum[146, 242, 10]
-          print(int(minAmountOfNotes + ((sum - fixedRangeMin) / (fixedRangeMax - fixedRangeMin)) * (maxAmountOfNotes - minAmountOfNotes)))
-          ```
+            ```python 
+            fixedRangeMin = 0
+            fixedRangeMax = 255*3
+            minAmountOfNotes = 0
+            maxAmountOfNotes = 61
+            sum = 398 # sum[146, 242, 10]
+            print(int(minAmountOfNotes + ((sum - fixedRangeMin) / 
+                                          (fixedRangeMax - fixedRangeMin)) * 
+                                          (maxAmountOfNotes - minAmountOfNotes)))
+            ```
           - However this code works isn't important, **it works!**
           - Running the above code we get `31`, so in the range from `0-765` with the number `398` gives us: `31` in the range from `0-61`.
           - And that is the note value that we play.
