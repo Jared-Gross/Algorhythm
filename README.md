@@ -53,7 +53,7 @@ comment that out or delete it.
 
 That fixes it.
 
-Install LilyPond with **Linux**:
+**Linux** Install LilyPond with:
 
 `sudo apt install lilypond`
 
@@ -65,6 +65,10 @@ Direct link:
 https://lilypond.org/download/binaries/mingw/lilypond-2.20.0-1.mingw.exe
 
 Install to the current working directory. 
+
+**LINUX** Install `libnotify-bin` if you don't have `notify-send`:
+
+`sudo apt install libnotify-bin`
 
 and your done, everything shoud work
 
