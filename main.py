@@ -3,7 +3,15 @@
 # chmod +x main.py
 
 '''
-sudo python3 -m pip install pyqt5 pydub moviepy playsound pywin32-ctypes qdarkstyle qdarkgraystyle win10toast mignus
+To install everything you need use:
+NOTE Depending on your version of python or preferable way to install packages select anyone of the listed below:
+
+pip install pyqt5 pydub moviepy playsound pywin32-ctypes qdarkstyle qdarkgraystyle win10toast mignus --user
+sudo pip install pyqt5 pydub moviepy playsound pywin32-ctypes qdarkstyle qdarkgraystyle win10toast mignus
+sudo pip install pyqt5 pydub moviepy playsound pywin32-ctypes qdarkstyle qdarkgraystyle win10toast mignus -- user
+sudo python2 -m pip install pyqt5 pydub moviepy playsound pywin32-ctypes qdarkstyle qdarkgraystyle win10toast mignus
+sudo python3.7 -m pip install pyqt5 pydub moviepy playsound pywin32-ctypes qdarkstyle qdarkgraystyle win10toast mignus
+sudo python3.8 -m pip install pyqt5 pydub moviepy playsound pywin32-ctypes qdarkstyle qdarkgraystyle win10toast mignus
 '''
 
 
@@ -20,21 +28,27 @@ import numpy as np
 
 # Music Imports
 # pip install mingus
-# sudo apt install lilypond
-import mingus.extra.lilypond as LilyPond
-import mingus.core.value as value
-from mingus.containers.note import Note
-from mingus.containers.note_container import NoteContainer
-from mingus.containers.bar import Bar
-from mingus.containers.track import Track
-from mingus.containers.composition import Composition
+'''
+NOTE LINUX Installation
+sudo apt install lilypond
 
+NOTE WINDOWS Installation
+Download:
+https://lilypond.org/windows.html
+
+Direct link:
+https://lilypond.org/download/binaries/mingw/lilypond-2.20.0-1.mingw.exe
+
+Install to the current directory. 
+'''
+import mingus.extra.lilypond as LilyPond
 # Audio Imports
 # pip install pydub, playsound, pyaudio
 from playsound import playsound
 from pydub.playback import play
 from pydub import AudioSegment
 
+# Perlin Noise Import
 # pip3 install git+https://github.com/pvigier/perlin-numpy
 from perlin_numpy import (generate_perlin_noise_2d, generate_fractal_noise_2d)
 
@@ -49,7 +63,7 @@ from moviepy import editor
 # from moviepy.video.VideoClip import VideoClip, ImageClip, ColorClip, TextClip
 
 '''
-NOTE make sure you have it installed properly
+NOTE LINUX Installation
 pip install Wand
 sudo apt-get install python-wand
 sudo apt-get install libmagickwand-dev
@@ -57,7 +71,7 @@ sudo apt-get install imagemagick
 sudo apt-get update
 sudo apt-get upgrade
 
-if moveipy has wierd errors about not being found on LINUX machines, then is how you fix it:
+if moveipy has wierd errors about not being found on LINUX machines, then this is how you fix it:
 go to:
 /etc/ImageMagick-6/policy.xml
 
@@ -1431,7 +1445,7 @@ class mainwindowUI(QMainWindow):
     title = "{name}"
     composer = "{company}"
 }}
-\relative c {{
+\\relative c {{
     \\time 4/4
     \clef "bass"
     \\tempo 4 = 120
@@ -1448,15 +1462,23 @@ class mainwindowUI(QMainWindow):
                 # i = ''.join(i)
                 f.write(note + ' ')
             f.write('\n}')
-        shutil.copy(music_sheets_folder + name + '.ly', music_sheets_folder + 'TEMP_' + name + '.ly')
-        with open(f'{music_sheets_folder}TEMP_{name}.ly', 'r') as f:
-            LilyPond.to_png(f.read(), music_sheets_folder + 'TEMP_' + name)
-        im = Image.open(f'{music_sheets_folder}TEMP_{name}.png')
+        if current_platform == 'Linux':
+            shutil.copyfile(music_sheets_folder + name + '.ly', music_sheets_folder + 'TEMP_' + name + '.ly')
+            with open(f'{music_sheets_folder}TEMP_{name}.ly', 'r') as f:
+                lilypond_text = f.read()
+            LilyPond.to_png(lilypond_text, music_sheets_folder + 'TEMP_' + name)
+        elif current_platform == 'Windows': 
+            os.popen(f'"{os.path.dirname(os.path.realpath(__file__))}/LilyPond/usr/bin/lilypond.exe" --output="{music_sheets_folder}/" --png "{music_sheets_folder}{name}.ly"').read()
+        try: im = Image.open(f'{music_sheets_folder}TEMP_{name}.png')
+        except FileNotFoundError: im = Image.open(f'{music_sheets_folder}{name}.png')
         w, h = im.size
         draw = ImageDraw.Draw(im)
         draw.rectangle((0, h-40, w, h), fill=(255, 255, 255), outline=(255, 255, 255))
         im.save(f'{music_sheets_folder}{name}.png', quality=95)
-        os.remove(f'{music_sheets_folder}TEMP_{name}.png')
+        try: 
+            os.remove(f'{music_sheets_folder}TEMP_{name}.ly')
+            os.remove(f'{music_sheets_folder}TEMP_{name}.png')
+        except FileNotFoundError: pass
 
     def exportFiles(self, comboExport, labelStatus, buttonName, file_name, audio_file, info_notes, info_note_types, info_duration_per_note):
         fileName = file_name.replace('.mp3', '')
