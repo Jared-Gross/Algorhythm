@@ -1,18 +1,33 @@
-#!/usr/bin/python3
-# You should also check the file have the right to be execute.
+#!/usr/bin/python3.8
+# You should also check the file have the right to be executed.
 # chmod +x main.py
 
 '''
-sudo python3 -m pip install pyqt5 pydub moviepy playsound pywin32-ctypes qdarkstyle qdarkgraystyle win10toast
+sudo python3 -m pip install pyqt5 pydub moviepy playsound pywin32-ctypes qdarkstyle qdarkgraystyle win10toast mignus
 '''
 
+
+# Other Imports
 # pip install pywin32-ctypes
-import ctypes, threading, traceback, atexit, random, time, glob, json, os, qdarkgraystyle, qdarkstyle, sys, subprocess, multiprocessing, string
-current_platform = 'Linux' if sys.platform == "linux" or sys.platform == "linux2" else 'Windows'
+import ctypes, threading, traceback, atexit, random, time, glob, json, os, shutil, qdarkgraystyle, qdarkstyle, sys, subprocess, multiprocessing, string
+current_platform = ('Linux' if sys.platform in ["linux", "linux2"] else 'Windows')
 from datetime import datetime
-from PIL import Image, ImageChops
+
+# Image Imports
+from PIL import Image, ImageChops, ImageDraw
 import matplotlib.pyplot as plt
 import numpy as np
+
+# Music Imports
+# pip install mingus
+# sudo apt install lilypond
+import mingus.extra.lilypond as LilyPond
+import mingus.core.value as value
+from mingus.containers.note import Note
+from mingus.containers.note_container import NoteContainer
+from mingus.containers.bar import Bar
+from mingus.containers.track import Track
+from mingus.containers.composition import Composition
 
 # Audio Imports
 # pip install pydub, playsound, pyaudio
@@ -138,7 +153,7 @@ class GenerateMusicThread(QThread):
         self.comboExport = comboExport
 
         self.alphabetText = alphabetText
-        self.noiseFileName = 'plot.png'
+        self.noiseFileName = 'new perlin.png'
         self.running = True
 
     def stop(self): self.running = False
@@ -504,8 +519,8 @@ class GeneratePerlinThread(QThread):
                 plt.savefig(self.perlinFilename, bbox_inches='tight', dpi=100)
 
                 self.trim(Image.open(self.perlinFilename)).save(self.perlinFilename)
-                resize_size=(self.ImageSize, self.ImageSize)
-                Image.open(self.perlinFilename).resize(resize_size).save(self.perlinFilename)
+                # resize_size=(self.ImageSize, self.ImageSize)
+                # Image.open(self.perlinFilename).resize(resize_size).save(self.perlinFilename)
                 self.updatePerlinPreview()
                 self.stop()
             except: self.generated.emit()
@@ -520,10 +535,10 @@ class GeneratePerlinThread(QThread):
         if bbox: return im.crop(bbox)
 
     def updatePerlinPreview(self):
-        pixmap = QPixmap(self.perlinFilename)
-        pixmap = pixmap.scaled(256, 256, Qt.KeepAspectRatio, Qt.FastTransformation)
-        self.imagePreview.setPixmap(pixmap)
-        self.imagePreview.resize(pixmap.width(),pixmap.height())
+        # pixmap = QPixmap(self.perlinFilename)
+        # pixmap = pixmap.scaled(256, 256, Qt.KeepAspectRatio, Qt.FastTransformation)
+        # self.imagePreview.setPixmap(pixmap)
+        # self.imagePreview.resize(pixmap.width(),pixmap.height())
         self.generated.emit()
         self.stop()
 
@@ -586,7 +601,7 @@ class mainwindowUI(QMainWindow):
 
         self.sliderCustomImgSize = self.findChild(
             QSlider, 'sliderCustomImgSize')
-        self.sliderCustomImgSize.valueChanged.connect(self.customImageResize)
+        self.sliderCustomImgSize.valueChanged.connect(partial(self.customImageResize, 'temp.png'))
         self.inputCustomImgSize = self.findChild(QSpinBox, 'inputCustomImgSize')
 
         self.customImagePreview = CustomImage(self.sliderCustomImgSize)
@@ -601,8 +616,8 @@ class mainwindowUI(QMainWindow):
 
         self.sliderNoiseImgSize = self.findChild(QSlider, 'sliderNoiseImgSize')
         self.inputNoiseImgSize = self.findChild(QSpinBox, 'inputNoiseImgSize')
-        self.sliderNoiseImgSize.sliderReleased.connect(self.sliderANDinputValueChange)
-        self.sliderNoiseImgSize.valueChanged.connect(self.sliderUpdateInputs)
+        # self.sliderNoiseImgSize.sliderReleased.connect(self.sliderANDinputValueChange)
+        self.sliderNoiseImgSize.valueChanged.connect(partial(self.customImageResize, 'perlin.png'))
 
         self.sliderNoisiness = self.findChild(QSlider, 'sliderNoisiness')
         self.inputNoisiness = self.findChild(QSpinBox, 'inputNoisiness')
@@ -765,7 +780,7 @@ class mainwindowUI(QMainWindow):
         self.PerlinNoisiness = 0
         self.PerlinScale = 0
         self.PerlinSeed = 0
-        self.perlinFilename = 'plot.png'
+        self.perlinFilename = 'perlin.png'
 
         self.threads = []
         self.perlinThreads = []
@@ -886,18 +901,26 @@ class mainwindowUI(QMainWindow):
                 self.NoteTypeGridLayout.addWidget(self.btnNoteType, i / 2, i % 2)
         except: pass # dont worry...
 
-    def customImageResize(self):
+    def customImageResize(self, name):
         global custom_image_path
         self.inputCustomImgSize.setValue(self.sliderCustomImgSize.value())
-
-        resize_size = (self.sliderCustomImgSize.value(),
-                       self.sliderCustomImgSize.value())
-        Image.open(custom_image_path).resize(resize_size).save('temp.png')
-        pixmap = QPixmap('temp.png')
-        pixmap = pixmap.scaled(
-            200, 200, Qt.KeepAspectRatio, Qt.FastTransformation)
-        self.customImagePreview.setPixmap(pixmap)
-        self.customImagePreview.resize(pixmap.width(), pixmap.height())
+        self.inputNoiseImgSize.setValue(self.sliderNoiseImgSize.value())
+        if 'temp.png' in name:
+            resize_size = (self.sliderCustomImgSize.value(), self.sliderCustomImgSize.value())
+            Image.open(custom_image_path).resize(resize_size).save(name)
+            pixmap = QPixmap(name)
+            pixmap = pixmap.scaled(
+                200, 200, Qt.KeepAspectRatio, Qt.FastTransformation)
+            self.customImagePreview.setPixmap(pixmap)
+            self.customImagePreview.resize(pixmap.width(), pixmap.height())
+        else:
+            resize_size = (self.sliderNoiseImgSize.value(),
+                           self.sliderNoiseImgSize.value())
+            Image.open(name).resize(resize_size).save('new perlin.png')
+            pixmap = QPixmap('new perlin.png')
+            pixmap = pixmap.scaled(256, 256, Qt.KeepAspectRatio, Qt.FastTransformation)
+            self.imagePreview.setPixmap(pixmap)
+            self.imagePreview.resize(pixmap.width(),pixmap.height())
 
     def sliderUpdateInputs(self):
         self.inputScale.setValue(self.sliderScale.value())
@@ -955,6 +978,7 @@ class mainwindowUI(QMainWindow):
         self.inputPerlinSeed.setEnabled(True)
         for perlinthread in self.perlinThreads: perlinthread.stop()
         self.perlinThreads.clear()
+        self.customImageResize('perlin.png')
 
     def btnNoteClick(self, name, index, state, play):
         global genres_json, note_states, note_type_states
@@ -1080,6 +1104,7 @@ class mainwindowUI(QMainWindow):
                 self.btnName.setFlat(True)
                 self.btnName.clicked.connect(partial(self.btnOpenPath, compile_folder))
                 self.btnName.setIcon(self.style().standardIcon(getattr(QStyle, 'SP_DirOpenIcon')))
+                self.btnName.setObjectName('btnName')
 
                 self.btnPlay = QPushButton()
                 self.btnPlay.setEnabled(False)
@@ -1088,6 +1113,7 @@ class mainwindowUI(QMainWindow):
                 self.comboExport = QComboBox()
                 self.comboExport.setEnabled(False)
                 self.comboExport.addItem('Save As...')
+                self.comboExport.addItem('Sheet Music')
                 self.comboExport.addItem('Audio')
                 if current_platform == 'Linux': self.comboExport.addItem('Video')
 
@@ -1102,7 +1128,8 @@ class mainwindowUI(QMainWindow):
                 QTimer.singleShot(10, loop.quit)
                 loop.exec_()
 
-                threading.Thread(target=self.generate_song, args=(play_live, self.progressBar, self.btnName, self.btnPlay, self.btnDelete, self.lblStatus, self.comboExport,)).start()
+                # threading.Thread(target=self.generate_song, args=(play_live, self.progressBar, self.btnName, self.btnPlay, self.btnDelete, self.lblStatus, self.comboExport,)).start()
+                self.generate_song(play_live, self.progressBar, self.btnName, self.btnPlay, self.btnDelete, self.lblStatus, self.comboExport)
 
         if not play_live:
             self.listWidgetClicked(2)
@@ -1397,6 +1424,40 @@ class mainwindowUI(QMainWindow):
                 self.btnCancelThreads.setEnabled(True)
         except: pass #nothing important
 
+    def generate_music_sheet(self, notes, note_types, name):
+        with open(f'{music_sheets_folder}{name}.ly', 'w+') as f:
+            f.write(f'''\\version "2.20.0"
+\header {{
+    title = "{name}"
+    composer = "{company}"
+}}
+\relative c {{
+    \\time 4/4
+    \clef "bass"
+    \\tempo 4 = 120
+''')
+            f.write('\t')
+            for index, note in enumerate(notes):
+                note = note[:-1]
+                note = note.replace('b', 'es')
+                note = note.replace('#', 'is')
+                note = note.lower()
+                note += str(note_types[index])
+                # i = list(i)
+                # i.insert(-1,",")
+                # i = ''.join(i)
+                f.write(note + ' ')
+            f.write('\n}')
+        shutil.copy(music_sheets_folder + name + '.ly', music_sheets_folder + 'TEMP_' + name + '.ly')
+        with open(f'{music_sheets_folder}TEMP_{name}.ly', 'r') as f:
+            LilyPond.to_png(f.read(), music_sheets_folder + 'TEMP_' + name)
+        im = Image.open(f'{music_sheets_folder}TEMP_{name}.png')
+        w, h = im.size
+        draw = ImageDraw.Draw(im)
+        draw.rectangle((0, h-40, w, h), fill=(255, 255, 255), outline=(255, 255, 255))
+        im.save(f'{music_sheets_folder}{name}.png', quality=95)
+        os.remove(f'{music_sheets_folder}TEMP_{name}.png')
+
     def exportFiles(self, comboExport, labelStatus, buttonName, file_name, audio_file, info_notes, info_note_types, info_duration_per_note):
         fileName = file_name.replace('.mp3', '')
         default_filename = compile_folder + fileName
@@ -1409,6 +1470,11 @@ class mainwindowUI(QMainWindow):
         elif comboExport.currentText() == 'Video':
             directoryAndFile, extension = QFileDialog.getSaveFileName(self, "Save video file", default_filename, f"mp4 (*.mp4);;.webm (*.webm)")
             if not directoryAndFile or not extension: comboExport.setCurrentIndex(0); return
+        elif comboExport.currentText() == 'Sheet Music':
+            threading.Thread(target=self.generate_music_sheet, args=(
+                info_notes, info_note_types, fileName,)).start()
+            if not directoryAndFile or not extension: comboExport.setCurrentIndex(0); return
+            return
         file_extension = extension.split('*')[-1].replace(')', '')
         self.setCursor(Qt.BusyCursor)
         threading.Thread(target=self.exportFilesThread, args=(comboExport, labelStatus, buttonName,
@@ -1733,6 +1799,7 @@ keys_file = os.path.dirname(os.path.realpath(__file__)) + '/keys.json'
 image_folder = os.path.dirname(os.path.realpath(__file__)) + '/Images/'
 themes_folder = os.path.dirname(os.path.realpath(__file__)) + '/Themes/'
 genres_folder = os.path.dirname(os.path.realpath(__file__)) + '/Genres/'
+music_sheets_folder = os.path.dirname(os.path.realpath(__file__)) + '/Music Sheets/'
 config_file = os.path.dirname(os.path.realpath(__file__)) + '/config.json'
 piano_samples = os.path.dirname(os.path.realpath(__file__)) + '/Piano Samples/'
 
@@ -1744,6 +1811,7 @@ if current_platform == 'Windows':
     piano_samples = piano_samples.replace('/', '\\')
     genres_folder = genres_folder.replace('/', '\\')
     themes_folder = themes_folder.replace('/', '\\')
+    music_sheets_folder = music_sheets_folder.replace('/', '\\')
 
 if not os.path.exists(config_file):
     config_json.append({"Default": ["True"],"Dark": ["False"],"Light": ["False"],"CSS": ["True"], "Last Genre": [0], "Last Algorithm": [0], "Last Theme": ["Fusion"], "Default Export Path": [str(os.path.dirname(os.path.realpath(__file__)) + '/Music/')], "Toggle Sound On": ["False"]})
@@ -1767,6 +1835,8 @@ note_types = {
 
 if not os.path.exists(compile_folder): os.mkdir(compile_folder)
 if not os.path.exists(genres_folder): os.mkdir(genres_folder)
+if not os.path.exists(music_sheets_folder):
+    os.mkdir(music_sheets_folder)
 
 all_genre_files = [f for f in glob.glob(genres_folder + "**/*.json", recursive=True)]
 
