@@ -54,6 +54,7 @@ comment that out or delete it.
 That fixes it.
 
 Install LilyPond with **Linux**:
+
 `sudo apt install lilypond`
 
 **Windows**:
