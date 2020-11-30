@@ -32,7 +32,7 @@ Install all requirements with:
 
 `pip install -r requirements.txt`
 
-Install ImageMagick with:
+Install ImageMagick with (Only Linux compatable):
 ```
 sudo apt-get install python-wand
 sudo apt-get install libmagickwand-dev
@@ -50,6 +50,18 @@ Near the bottom there is this line:
 `<!-- <policy domain="path" rights="none" pattern="@*" /> -->`
 
 comment that out or delete it.
+
+Install LilyPond with **Linux**:
+`sudo apt install lilypond`
+
+**Windows**:
+Download:
+https://lilypond.org/windows.html
+
+Direct link:
+https://lilypond.org/download/binaries/mingw/lilypond-2.20.0-1.mingw.exe
+
+Install to the current working directory. 
 
 and your done, everything shoud work
 
