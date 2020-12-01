@@ -1,8 +1,25 @@
 <p align="center"><img src="https://github.com/JareBear12418/Algorythm/blob/master/icon.png" /></p>
 
-[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-windows|linux-blue.svg)](PLATFORM)
-[![Size](https://img.shields.io/github/repo-size/JareBear12418/Algorythm?label=Size)](SIZE)
+<p align="center">
+    <a href="https://img.shields.io/github/license/JareBear12418/Algorhythm?color=blue&style=for-the-badge" alt="License">
+        <img src="https://img.shields.io/github/license/JareBear12418/Algorhythm?color=blue&style=for-the-badge" /></a>
+    <a href="https://img.shields.io/static/v1?label=Platform&message=Windows|Linux&color=blue&style=for-the-badge">
+        <img src="https://img.shields.io/static/v1?label=Platform&message=Windows|Linux&color=blue&style=for-the-badge" /></a>
+    <a href="https://img.shields.io/github/repo-size/JareBear12418/Algorythm?label=Size&style=for-the-badge" alt="Size">
+        <img src="https://img.shields.io/github/repo-size/JareBear12418/Algorythm?label=Size&style=for-the-badge" /></a>
+    <a href="https://img.shields.io/discord/588186512143679488?logo=discord&style=for-the-badge">
+        <img src="https://img.shields.io/discord/588186512143679488?logo=discord&style=for-the-badge" alt="Discord"></a>
+    <a href="https://img.shields.io/github/v/tag/JareBear12418/Algorhythm?label=Release&logoColor=blue&style=for-the-badge">
+        <img src="https://img.shields.io/github/v/tag/JareBear12418/Algorhythm?label=Release&logoColor=blue&style=for-the-badge"
+            alt="Discord"></a>
+    <a href="https://img.shields.io/github/languages/count/JareBear12418/Algorhythm?style=for-the-badge">
+        <img src="https://img.shields.io/github/languages/count/JareBear12418/Algorhythm?style=for-the-badge"
+            alt="Languages"></a>
+    <a href="https://img.shields.io/github/languages/top/JareBear12418/Algorhythm?style=for-the-badge">
+        <img src="https://img.shields.io/github/languages/top/JareBear12418/Algorhythm?style=for-the-badge"
+            alt="Top_Language"></a>
+</p>
+
 # Algorhythm
 - Generate music algorithmically at the click of a button.
 
@@ -38,25 +55,36 @@ Download [Lilypond](https://lilypond.org/windows.html)
 
 and install into the `Algorhythm` directory.. 
 
-That should be everything you need to install.
+Next you need to download and install `ffmpeg`
+Download ffmpeg [here](https://www.filehorse.com/download-ffmpeg-64/)
+
+Extract the zip folder and copy the following files into the Algorhythm directory.
+`./ffmpeg-4.3.1-win64-static/bin/ffmpeg.exe`
+`./ffmpeg-4.3.1-win64-static/bin/ffplay.exe`
+`./ffmpeg-4.3.1-win64-static/bin/ffprobe.exe`
+
+That should be everything you need to install for Windows.
 
 The Algorhythm directory should look similar to this:
 ```
-C:.
-|   .gitignore
-|   config.json
-|   icon.ico
-|   icon.png
-|   keys.json
-|   LICENSE
-|   main.py
-|   README.md
-|   requirements.txt
-+---Genres
-+---GUI
-+---Images
-+---LilyPond <-------- Make sure LilyPond is installed into the directory to where Algorhythm is downloaded to.
-\---Themes
+📦_Algorhythm
+ ┣ 📂Genres
+ ┣ 📂GUI
+ ┣ 📂Images
+ ┣ 📂LilyPond <-------- Make sure LilyPond is installed into the directory to where Algorhythm is downloaded to.
+ ┣ 📂Themes
+ ┣ 📜.gitignore
+ ┣ 📜config.json
+ ┣ 📜ffmpeg.exe <------- Make sure you coped these 3 executable files here.
+ ┣ 📜ffplay.exe <-----^
+ ┣ 📜ffprobe.exe <--^
+ ┣ 📜icon.ico
+ ┣ 📜icon.png
+ ┣ 📜keys.json
+ ┣ 📜LICENSE
+ ┣ 📜main.py
+ ┣ 📜README.md
+ ┗ 📜requirements.txt
 ```
 
 ### Linux
