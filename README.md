@@ -238,6 +238,15 @@ and your done, everything shoud work
 - [ ] Live play needs a whole remake to sound similar to generated music.
   - Will probally have to generate the first 2 notes ahead of the current note.
 
+## Why?
+- Aren't their better music generators out there? 
+    - **YES!!!** There are so much better music generators out there that use AI and Neural Networks and so on. So Yes, there are way betters ones out there then mine.
+
+- Why did start this project? 
+    - Continuing from the above answere, I don't expect to make better music then AI generated music, although my goal is to reach a similar outcome, but it's hard to beat something that can think itself. 
+    - The single main reason why I started this project is to make simple piano music very easy to do. I wanted to make make a simple background piano song for some ambience, but I can't play piano that well, so I started looking for some programs that can generate music easily, I did find some great ones, that use AI, but setting one up and using one is by no means easy to do, and the average person would probaly not figure it out aswell. So I was like: "I'll just make my own." So, I set off on my adventure to create this, generating music, with on click, in a simple executable program, although the size of the program is pretty big, and the development installation is not easy to setup, but for the average user its great to use. 
+
+TL;DR To make an easy to use music Generator to make music at one click.
 
 ## Credits
 [QDarkStyleSheet](https://github.com/ColinDuquesnoy/QDarkStyleSheet)
