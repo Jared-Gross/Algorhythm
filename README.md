@@ -61,8 +61,11 @@ Next you need to download and install `ffmpeg`
 Download ffmpeg [here](https://www.filehorse.com/download-ffmpeg-64/)
 
 Extract the zip folder and copy the following files into the Algorhythm directory.
+
 `./ffmpeg-4.3.1-win64-static/bin/ffmpeg.exe`
+
 `./ffmpeg-4.3.1-win64-static/bin/ffplay.exe`
+
 `./ffmpeg-4.3.1-win64-static/bin/ffprobe.exe`
 
 That should be everything you need to install for Windows.
