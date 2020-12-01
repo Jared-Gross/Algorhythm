@@ -15,10 +15,9 @@
 
 ## Installation
 ### Windows
-Download [here](https://drive.google.com/file/d/1IqwMJ4RBeJ685IE8fRP0bJ18oboslgtH/view?usp=sharing)!
-
-### Linux
 Download this repository!
+
+Installing all python libraries:
 
 It's best practice to create a virtual enviroment with:
 
@@ -32,7 +31,52 @@ Install all requirements with:
 
 `pip install -r requirements.txt`
 
-Install ImageMagick with (Only Linux compatable):
+Install Lilypond to the Algorhythm file directory.
+Download [Lilypond](https://lilypond.org/windows.html) 
+
+[Direct link](https://lilypond.org/download/binaries/mingw/lilypond-2.20.0-1.mingw.exe)
+
+and install into the `Algorhythm` directory.. 
+
+That should be everything you need to install.
+
+The Algorhythm directory should look similar to this:
+```
+C:.
+|   .gitignore
+|   config.json
+|   icon.ico
+|   icon.png
+|   keys.json
+|   LICENSE
+|   main.py
+|   README.md
+|   requirements.txt
++---Genres
++---GUI
++---Images
++---LilyPond <-------- Make sure LilyPond is installed into the directory to where Algorhythm is downloaded to.
+\---Themes
+```
+
+### Linux
+Download this repository!
+
+Installing all python libraries:
+
+It's best practice to create a virtual enviroment with:
+
+`virtualenv [name]`
+
+then activate it with:
+
+`[name]/Scripts/activate`
+
+Install all requirements with:
+
+`pip install -r requirements.txt`
+
+Install ImageMagick with:
 ```
 sudo apt-get install python-wand
 sudo apt-get install libmagickwand-dev
@@ -49,24 +93,13 @@ Near the bottom there is this line:
 
 `<!-- <policy domain="path" rights="none" pattern="@*" /> -->`
 
-comment that out or delete it.
+comment that out or delete it and that fixes the error.
 
-That fixes it.
-
-**Linux** Install LilyPond with:
+Install LilyPond with:
 
 `sudo apt install lilypond`
 
-**Windows**:
-Download:
-https://lilypond.org/windows.html
-
-Direct link:
-https://lilypond.org/download/binaries/mingw/lilypond-2.20.0-1.mingw.exe
-
-Install to the current working directory. 
-
-**LINUX** Install `libnotify-bin` if you don't have `notify-send`:
+Install `libnotify-bin` if you don't have `notify-send` with:
 
 `sudo apt install libnotify-bin`
 
