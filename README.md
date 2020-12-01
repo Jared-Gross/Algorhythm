@@ -1,4 +1,6 @@
-<p align="center"><img src="https://github.com/JareBear12418/Algorythm/blob/master/icon.png" /></p>
+<p align="center">
+    <img height="200" width="200" src="https://github.com/JareBear12418/Algorythm/blob/master/icon.png" />
+</p>
 
 <p align="center">
     <a href="https://img.shields.io/github/license/JareBear12418/Algorhythm?color=blue&style=for-the-badge" alt="License">
