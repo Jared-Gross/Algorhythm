@@ -7,7 +7,7 @@
         <img src="https://img.shields.io/static/v1?label=Platform&message=Windows|Linux&color=blue&style=for-the-badge" /></a>
     <a href="https://img.shields.io/github/repo-size/JareBear12418/Algorythm?label=Size&style=for-the-badge" alt="Size">
         <img src="https://img.shields.io/github/repo-size/JareBear12418/Algorythm?label=Size&style=for-the-badge" /></a>
-    <a href="https://img.shields.io/discord/588186512143679488?logo=discord&style=for-the-badge">
+    <a href="https://discord.gg/EtrSc4s">
         <img src="https://img.shields.io/discord/588186512143679488?logo=discord&style=for-the-badge" alt="Discord"></a>
     <a href="https://img.shields.io/github/v/tag/JareBear12418/Algorhythm?label=Release&logoColor=blue&style=for-the-badge">
         <img src="https://img.shields.io/github/v/tag/JareBear12418/Algorhythm?label=Release&logoColor=blue&style=for-the-badge"
