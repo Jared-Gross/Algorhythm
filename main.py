@@ -39,7 +39,7 @@ https://lilypond.org/windows.html
 Direct link:
 https://lilypond.org/download/binaries/mingw/lilypond-2.20.0-1.mingw.exe
 
-Install to the current directory. 
+Install to the current directory.
 '''
 import mingus.extra.lilypond as LilyPond
 # Audio Imports
@@ -107,11 +107,9 @@ https://github.com/Alexhuszagh/BreezeStyleSheets
 '''
 
 if current_platform == 'Linux':
+    # If notifies don't work, install:
+    # sudo apt install libnotify-bin
     import webbrowser as wb
-    # Only works for linux
-    # pip install notify2
-    # pip install dbus-python
-    # import notify2 as notify
 elif current_platform == 'Windows':
     import win32com
     # only works for windows
@@ -1175,10 +1173,10 @@ class mainwindowUI(QMainWindow):
                 path = path.replace('.mp3', '.mp4')
             if not self.delete_how_many_files == 0 and final:
                 grammerFix = 'file' if self.delete_how_many_files == 1 else 'files'
-                self.send_notification('Deleted', f'Successfully deleted {self.delete_how_many_files} {grammerFix}.')
+                self.send_notification('Deleted', f'Successfully deleted {self.delete_how_many_files} {grammerFix}.', 'edit-delete')
         except Exception as e: pass #no worries, its nothing major
 
-    def send_notification(self, header, message):
+    def send_notification(self, header, message, img):
         # path to notification window icon
         ICON_PATH = os.path.realpath(__file__) + '/icon.png'
         duration_sec = 3
@@ -1195,7 +1193,7 @@ class mainwindowUI(QMainWindow):
             # n.update(header, message)
             # # show notification on screen
             # n.show()
-            subprocess.call(["notify-send", "-i", 'edit-delete', header, message])
+            subprocess.call(["notify-send", "-i", img, header, message])
 
         elif current_platform == 'Windows':
             # One-time initialization
@@ -1467,7 +1465,7 @@ class mainwindowUI(QMainWindow):
             with open(f'{music_sheets_folder}TEMP_{name}.ly', 'r') as f:
                 lilypond_text = f.read()
             LilyPond.to_png(lilypond_text, music_sheets_folder + 'TEMP_' + name)
-        elif current_platform == 'Windows': 
+        elif current_platform == 'Windows':
             os.popen(f'"{os.path.dirname(os.path.realpath(__file__))}/LilyPond/usr/bin/lilypond.exe" --output="{music_sheets_folder}/" --png "{music_sheets_folder}{name}.ly"').read()
         try: im = Image.open(f'{music_sheets_folder}TEMP_{name}.png')
         except FileNotFoundError: im = Image.open(f'{music_sheets_folder}{name}.png')
@@ -1475,9 +1473,11 @@ class mainwindowUI(QMainWindow):
         draw = ImageDraw.Draw(im)
         draw.rectangle((0, h-40, w, h), fill=(255, 255, 255), outline=(255, 255, 255))
         im.save(f'{music_sheets_folder}{name}.png', quality=95)
-        try: 
-            os.remove(f'{music_sheets_folder}TEMP_{name}.ly')
-            os.remove(f'{music_sheets_folder}TEMP_{name}.png')
+        self.send_notification(
+            'Sheet Music', f'Sheet Music for {name} was successfully saved!', 'checkbox-checked-symbolic')
+        try: os.remove(f'{music_sheets_folder}TEMP_{name}.ly')
+        except FileNotFoundError: pass
+        try: os.remove(f'{music_sheets_folder}TEMP_{name}.png')
         except FileNotFoundError: pass
 
     def exportFiles(self, comboExport, labelStatus, buttonName, file_name, audio_file, info_notes, info_note_types, info_duration_per_note):
