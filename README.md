@@ -32,7 +32,19 @@
 | Theme support | ✔️  | ✔️ |
 | Sheet music | ✔️  | ✔️ |
 
-## Installation
+
+
+## Installation/Downloads
+### Windows
+Download the pre-release [here](https://github.com/JareBear12418/Algorhythm/releases).
+
+
+### Linux
+To install for linux, instructions are listed [here](https://github.com/JareBear12418/Algorhythm/blob/master/README.md#linux).
+
+
+
+## Setup for Development
 ### Windows
 Download this repository!
 
@@ -92,6 +104,7 @@ The Algorhythm directory should look similar to this:
  ┗ 📜requirements.txt
 ```
 
+
 ### Linux
 Download this repository!
 
@@ -137,6 +150,7 @@ Install `libnotify-bin` if you don't have `notify-send` with:
 `sudo apt install libnotify-bin`
 
 and your done, everything shoud work
+
 
 ## How it works
 - Using nothing but raw math/algorithms to generate music.
@@ -205,6 +219,7 @@ and your done, everything shoud work
 - TL;DR: **MAGIC!!!**
 
 
+
 ## Plans
 - [ ] Make pre-configured genres.
 - [x] Text to music
@@ -224,12 +239,14 @@ and your done, everything shoud work
   - [ ] Organ
   - For the time being you can change the sounds yourself by going to the [Piano Samples](Piano%20Samples) folder and edit them yourself. ***DO NOT CHANGE THE FILE NAMES! If you do the program will not work and it will crash and it will be very bad.***
 
+
 ## ToDo 
 - [ ] Add play and stop button for playing the generated Audio.
 - [ ] `.qss` for Live control buttons.
 - [x] Try and make noise generator faster.
 - [x] Remake entire UI and UX.
   - Using other widgets.
+
 
 ## Bugs
 - [ ] Fix minor bugs with sheet music generator. 
@@ -241,7 +258,8 @@ and your done, everything shoud work
 - [ ] Live play needs a whole remake to sound similar to generated music.
   - Will probally have to generate the first 2 notes ahead of the current note.
 
-## Why?
+
+## FAQ
 - Aren't their better music generators out there? 
     - **YES!!!** There are so much better music generators out there that use AI and Neural Networks and so on. So Yes, there are way betters ones out there then mine.
 
