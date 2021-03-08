@@ -2,19 +2,6 @@
 # You should also check the file have the right to be executed.
 # chmod +x main.py
 
-"""To install everything you need use: NOTE Depending on your version of python
-or preferable way to install packages select anyone of the listed below:
-
-pip install pyqt5 pydub moviepy playsound pywin32-ctypes qdarkstyle qdarkgraystyle win10toast mignus --user 
-sudo pip install pyqt5 pydub moviepy playsound pywin32-ctypes qdarkstyle qdarkgraystyle win10toast mignus 
-sudo pip install pyqt5 pydub moviepy playsound pywin32-ctypes qdarkstyle qdarkgraystyle win10toast mignus -- user 
-sudo python2 -m pip install pyqt5 pydub moviepy playsound pywin32-ctypes qdarkstyle qdarkgraystyle win10toast mignus 
-sudo python3.7 -m pip install pyqt5 pydub moviepy playsound pywin32-ctypes qdarkstyle qdarkgraystyle win10toast mignus 
-sudo python3.8 -m pip install pyqt5 pydub moviepy playsound pywin32-ctypes qdarkstyle qdarkgraystyle win10toast mignus
-"""
-
-# Other Imports
-# pip install pywin32-ctypes
 import Themes.pyqtcss as pyqtcss
 from Themes.Breeze import breeze_resources
 from PyQt5 import uic
@@ -53,74 +40,6 @@ import \
 
 current_platform = ('Linux' if sys.platform in [
                     "linux", "linux2"] else 'Windows')
-
-# Image Imports
-
-# Music Imports
-# pip install mingus
-'''
-NOTE LINUX Installation
-sudo apt install lilypond
-
-NOTE WINDOWS Installation
-Download:
-https://lilypond.org/windows.html
-
-Direct link:
-https://lilypond.org/download/binaries/mingw/lilypond-2.20.0-1.mingw.exe
-
-Install to the current directory.
-'''
-# Audio Imports
-# pip install pydub, playsound, pyaudio
-
-# Perlin Noise Import
-# pip3 install git+https://github.com/pvigier/perlin-numpy
-
-# Video Imports
-# pip install moviepy
-
-# Possible .exe build errors
-# https://stackoverflow.com/questions/44615249/attributeerror-module-object-has-no-attribute-audio-fadein
-# from moviepy.video.VideoClip import resize
-# from moviepy.video.VideoClip import VideoClip, ImageClip, ColorClip, TextClip
-
-'''
-NOTE LINUX Installation
-pip install Wand
-sudo apt-get install python-wand
-sudo apt-get install libmagickwand-dev
-sudo apt-get install imagemagick
-sudo apt-get update
-sudo apt-get upgrade
-
-if moveipy has wierd errors about not being found on LINUX machines, then this is how you fix it:
-go to:
-/etc/ImageMagick-6/policy.xml
-
-and at the end usally some where there is this line:
-<!-- <policy domain="path" rights="none" pattern="@*" /> -->
-comment that out or delete it.
-
-or go to this thread and you will find instructions to fix the error.
-https://www.reddit.com/r/moviepy/comments/4nin6q/update_imagemagik_and_moviepy_has_broken/
-'''
-
-# GUI Imports
-# pip install pyqt5
-
-# Themes
-
-'''
-pip install qdarkgraystyle
-https://github.com/ColinDuquesnoy/QDarkStyleSheet
-
-pip install qdarkstyle
-https://github.com/mstuttgart/qdarkgraystyle
-
-Breeze
-https://github.com/Alexhuszagh/BreezeStyleSheets
-'''
 
 if current_platform == 'Linux':
     # If notifies don't work, install:
