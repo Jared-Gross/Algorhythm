@@ -443,6 +443,8 @@ class GenerateMusicThread(QThread):
                 note_types_number.append(
                     int(startNoteType + (i - 1) * stepNoteType))
             if i == amount_of_numbers:
+                numbers.append(int(start + (amount_of_numbers - 1) * step))  # end
+                note_types_number.append(int(startNoteType + (amount_of_numbers - 1) * stepNoteType))  # end
                 numbers.append(
                     int(start + (amount_of_numbers - 1) * step))  # end
                 note_types_number.append(
@@ -529,6 +531,12 @@ class GenerateMusicThread(QThread):
         alphabet_notes_index = []
         alphabet_notes = []
         for i, j in enumerate(list_of_numbers):
+            alphabet_note_types.append(self.closest(self.all_available_note_types, len(j)))
+            temp_list = [
+                self.closest(self.all_available_notes_index, k)
+                for o, k in enumerate(j)
+            ]
+
             alphabet_note_types.append(self.closest(
                 self.all_available_note_types, len(j)))
             temp_list = [self.closest(self.all_available_notes_index, k)
@@ -806,6 +814,7 @@ class mainwindowUI(QMainWindow):
         self.genAlgorithms.setToolTip(
             'Diffrent algorithms of music generation.')
         for i, j in enumerate(self.algorithms):
+            if i in [1, 3]: self.genAlgorithms.insertSeparator(i)
             if i == 1 or i == 5 or i == 7:
                 self.genAlgorithms.insertSeparator(i)
             elif i == 9:
@@ -913,6 +922,9 @@ class mainwindowUI(QMainWindow):
     def load_theme(self):
         QApplication.setPalette(QApplication.palette())
         global originalPalette
+        if originalPalette is None: originalPalette = QApplication.palette()
+        if CSSOn[0] == 'True': self.setStyleSheet(open(themes_folder + "style.qss", "r").read())
+        else: self.setStyleSheet('')
         if originalPalette is None:
             originalPalette = QApplication.palette()
         if CSSOn[0] == 'True':
@@ -993,6 +1005,7 @@ class mainwindowUI(QMainWindow):
                 self.btnNote = QPushButton(j)
                 self.btnNote.setCheckable(True)
                 self.btnNote.setChecked(note_states[i] == 'True')
+                self.btnNote.clicked.connect(partial(self.btnNoteClick, j, i, self.btnNote, True))
                 self.btnNote.clicked.connect(
                     partial(self.btnNoteClick, j, i, self.btnNote, True))
                 if '#' in j or 'b' in j:
