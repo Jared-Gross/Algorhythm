@@ -26,6 +26,8 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+.vscode
+.idea
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -127,3 +129,15 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Third party tools
+mingus
+
+# Program generated Directories and Files
+/Music
+/Music Sheets
+/Generes
+config.json
+
+# Other/Testing Scripts
+all QT Icons.py
