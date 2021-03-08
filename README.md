@@ -2,23 +2,6 @@
 # You should also check the file have the right to be executed.
 # chmod +x main.py
 
-"""To install everything you need use: NOTE Depending on your version of python
-or preferable way to install packages select anyone of the listed below:
-
-pip install pyqt5 pydub moviepy playsound pywin32-ctypes qdarkstyle
-qdarkgraystyle win10toast mignus --user sudo pip install pyqt5 pydub
-moviepy playsound pywin32-ctypes qdarkstyle qdarkgraystyle win10toast
-mignus sudo pip install pyqt5 pydub moviepy playsound pywin32-ctypes
-qdarkstyle qdarkgraystyle win10toast mignus -- user sudo python2 -m pip
-install pyqt5 pydub moviepy playsound pywin32-ctypes qdarkstyle
-qdarkgraystyle win10toast mignus sudo python3.7 -m pip install pyqt5
-pydub moviepy playsound pywin32-ctypes qdarkstyle qdarkgraystyle
-win10toast mignus sudo python3.8 -m pip install pyqt5 pydub moviepy
-playsound pywin32-ctypes qdarkstyle qdarkgraystyle win10toast mignus
-"""
-
-# Other Imports
-# pip install pywin32-ctypes
 import Themes.pyqtcss as pyqtcss
 from Themes.Breeze import breeze_resources
 from PyQt5 import uic
