@@ -24,6 +24,16 @@
         <img src="https://img.shields.io/badge/Sourcery-enabled-brightgreen?style=for-the-badge"
             alt="https://sourcery.ai"></a>
 </p>
+<br>
+<p align="center">
+<img src="https://forthebadge.com/images/badges/works-on-my-machine.svg">
+</p>
+<p align="center">
+<a href="https://github.com/dhhruv/Pixxia">
+  <img src="http://ForTheBadge.com/images/badges/made-with-python.svg">
+  <img src="https://forthebadge.com/images/badges/powered-by-qt.svg">
+</a>
+</p>
 
 # Algorhythm
 - Generate music algorithmically at the click of a button.
