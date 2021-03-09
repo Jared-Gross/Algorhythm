@@ -20,6 +20,9 @@
     <a href="https://img.shields.io/github/languages/top/JareBear12418/Algorhythm?style=for-the-badge">
         <img src="https://img.shields.io/github/languages/top/JareBear12418/Algorhythm?style=for-the-badge"
             alt="Top_Language"></a>
+    <a href="https://sourcery.ai">
+        <img src="https://img.shields.io/badge/Sourcery-enabled-brightgreen?style=for-the-badge"
+            alt="https://sourcery.ai"></a>
 </p>
 
 # Algorhythm
