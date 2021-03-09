@@ -26,12 +26,13 @@
 </p>
 <br>
 <p align="center">
-<img src="https://forthebadge.com/images/badges/works-on-my-machine.svg">
+    <a href="https://forthebadge.com">
+    <img src="https://forthebadge.com/images/badges/works-on-my-machine.svg">
 </p>
 <p align="center">
-<a href="https://github.com/dhhruv/Pixxia">
-  <img src="http://ForTheBadge.com/images/badges/made-with-python.svg">
-  <img src="https://forthebadge.com/images/badges/powered-by-qt.svg">
+    <a href="https://forthebadge.com">
+    <img src="http://ForTheBadge.com/images/badges/made-with-python.svg">
+    <img src="https://forthebadge.com/images/badges/powered-by-qt.svg">
 </a>
 </p>
 
