@@ -6,19 +6,26 @@
 #include <sstream>
 #include <vector>
 #include <time.h>
-#include "process.h"
 #include <iterator>
 #include <algorithm>
+#include <fstream>
+#include <filesystem>
+#include <experimental/filesystem>
 // if were on windows
+// void include_libs(){
+#ifdef _WIN32 || _WIN64
+#include "process.h"
 #include <windows.h>
 #include <limits.h>
 #include <direct.h>
-
+#elif __linux__
 // if were on linux
 #include <unistd.h>
+#endif
+// }
 
-#include <fstream>
-
+// include_libs();
+namespace fs = std::experimental::filesystem;
 using namespace std;
 /*
 LINUX
@@ -70,6 +77,13 @@ string platform()
 //     for (auto it = istream_iterator<string>(iss); it != istream_iterator<string>() && n < N; ++it, ++n)
 //         arr[n] = *it;
 // }
+
+void deleteDirectoryContents(const string &dir_path)
+{
+    for (const auto &entry : experimental::filesystem::directory_iterator(dir_path))
+        experimental::filesystem::remove_all(entry.path());
+}
+#ifdef _WIN32
 string getCurrentDir()
 {
     char buff[MAX_PATH];
@@ -77,7 +91,7 @@ string getCurrentDir()
     string::size_type position = string(buff).find_last_of("\\/");
     return string(buff).substr(0, position);
 }
-
+#endif
 vector<string> list_dir(const char *path)
 {
     struct dirent *entry;
@@ -105,16 +119,21 @@ vector<string> list_dir(const char *path)
 
 void combine_audio_files(vector<string> notes, vector<double> note_types, string output_filename)
 {
-    string CWD = getCurrentDir();
+#ifdef _WIN32 || _WIN64
     _mkdir((CWD + "/Process").c_str());
+#elif __linux__
+    system(("mkdir \"" + CWD + "/Process\"").c_str());
+#endif
     string file_names_string = "";
     int index = 0;
     for (string &file_name : notes)
     {
         string s_index = to_string(index);
         string trim_ammount = to_string(note_types[index]);
-        system(("sox \"" + file_name + "\" \"" + CWD + "/Process/" + s_index + ".mp3\" reverse trim " + trim_ammount + " reverse").c_str());
-        file_names_string.append(" \"" + file_name + "\" ");
+        // system(("sox \"" + file_name + "\" \"" + CWD + "/Process/" + s_index + ".mp3\"
+        // reverse trim " + trim_ammount + " reverse").c_str());
+        system(("ffmpeg -t " + trim_ammount + " -i \"" + file_name + "\" -acodec copy \"" + CWD + "/Process/" + s_index + ".mp3\"").c_str());
+        file_names_string.append(" \"" + CWD + "/Process/" + s_index + ".mp3\" ");
         index++;
     }
     // NEED LENGTH OF AUDIO FILE
@@ -123,9 +142,11 @@ void combine_audio_files(vector<string> notes, vector<double> note_types, string
     // GET ALL PATHS TO THE NEW SHORTEND FILES
     // COMBINE ALL SHORTEND FILES INTO ONE
     // sox tracks\5_7.mp3 ntracks\05_7.mp3 reverse trim 0.195 reverse
+    // ffmpeg -t 30 -i inputfile.mp3 -acodec copy outputfile.mp3
 
-    // string command_string = "cat" + file_names_string + "| mp3cat - - > \"" + output_filename + "\"";
-    // popen(command_string.c_str(), "r");
+    string command_string = "cat" + file_names_string + "| mp3cat - - > \"" + output_filename + "\"";
+    popen(command_string.c_str(), "r");
+    deleteDirectoryContents((CWD + "/Process").c_str());
 }
 string get_audio_file_length(string command)
 {
@@ -147,20 +168,16 @@ string get_audio_file_length(string command)
     pclose(pipe);
     return result;
 }
-
 int main()
 {
-    if (platform() == "Windows")
-    {
-        // #include <windows.h>
-        // #include <limits.h>
-        CWD = getCurrentDir();
-    }
-    else if (platform() == "Linux")
-    {
-        // #include <unistd.h>
-        // CWD = get_current_dir_name();
-    }
+#if _WIN64
+    CWD = getCurrentDir();
+#elif _WIN32
+    CWD = getCurrentDir();
+#elif __linux__
+    CWD = get_current_dir_name();
+#endif // _OM_NO_IOSTREAM
+
     vector<string> list_directory = list_dir("./Piano Samples/");
     vector<string> files_to_compile = {
         list_directory[1],
@@ -194,6 +211,6 @@ int main()
     }
     for (double &new_trim : trim_note_audio_values)
         cout << new_trim << endl;
-    combine_audio_files(files_to_compile, trim_note_audio_values, "yteaa.mp3");
+    combine_audio_files(files_to_compile, trim_note_audio_values, "Music/output.mp3");
     return 0;
 }
