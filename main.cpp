@@ -10,22 +10,23 @@
 #include <algorithm>
 #include <fstream>
 #include <filesystem>
-#include <experimental/filesystem>
 // if were on windows
 // void include_libs(){
 #ifdef _WIN32 || _WIN64
+#include <filesystem>
 #include "process.h"
 #include <windows.h>
 #include <limits.h>
 #include <direct.h>
 #elif __linux__
 // if were on linux
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
 #include <unistd.h>
 #endif
 // }
 
 // include_libs();
-namespace fs = std::experimental::filesystem;
 using namespace std;
 /*
 LINUX
@@ -69,21 +70,7 @@ string platform()
     return "Other";
 #endif
 }
-// template <size_t N>
-// void splitString(string (&arr)[N], string str)
-// {
-//     int n = 0;
-//     istringstream iss(str);
-//     for (auto it = istream_iterator<string>(iss); it != istream_iterator<string>() && n < N; ++it, ++n)
-//         arr[n] = *it;
-// }
-
-void deleteDirectoryContents(const string &dir_path)
-{
-    for (const auto &entry : experimental::filesystem::directory_iterator(dir_path))
-        experimental::filesystem::remove_all(entry.path());
-}
-#ifdef _WIN32
+#ifdef _WIN32 || _WIN64
 string getCurrentDir()
 {
     char buff[MAX_PATH];
@@ -119,34 +106,30 @@ vector<string> list_dir(const char *path)
 
 void combine_audio_files(vector<string> notes, vector<double> note_types, string output_filename)
 {
-#ifdef _WIN32 || _WIN64
-    _mkdir((CWD + "/Process").c_str());
-#elif __linux__
     system(("mkdir \"" + CWD + "/Process\"").c_str());
-#endif
     string file_names_string = "";
     int index = 0;
+    ofstream list_file;
+    list_file.open("Process/list.txt");
     for (string &file_name : notes)
     {
         string s_index = to_string(index);
         string trim_ammount = to_string(note_types[index]);
         // system(("sox \"" + file_name + "\" \"" + CWD + "/Process/" + s_index + ".mp3\"
         // reverse trim " + trim_ammount + " reverse").c_str());
+        list_file << "file '" << s_index + ".mp3'\n";
+        // list_file << "file '" << CWD + "/Process/" + s_index + ".mp3'\n";
         system(("ffmpeg -t " + trim_ammount + " -i \"" + file_name + "\" -acodec copy \"" + CWD + "/Process/" + s_index + ".mp3\"").c_str());
         file_names_string.append(" \"" + CWD + "/Process/" + s_index + ".mp3\" ");
         index++;
     }
-    // NEED LENGTH OF AUDIO FILE
-    // NEED TO SHRING THE AUDIO FILE LENGTH BY 1,2,4,8,16,32
-    // SAVE THOSE SHRUNKEN AUDIO FILES TO A TEMPERARY Directory
-    // GET ALL PATHS TO THE NEW SHORTEND FILES
-    // COMBINE ALL SHORTEND FILES INTO ONE
-    // sox tracks\5_7.mp3 ntracks\05_7.mp3 reverse trim 0.195 reverse
-    // ffmpeg -t 30 -i inputfile.mp3 -acodec copy outputfile.mp3
-
-    string command_string = "cat" + file_names_string + "| mp3cat - - > \"" + output_filename + "\"";
-    popen(command_string.c_str(), "r");
-    deleteDirectoryContents((CWD + "/Process").c_str());
+    list_file.close();
+    string command_string = "ffmpeg -f concat -i \"" + CWD + "/Process/list.txt\" -c copy \"" + CWD + "/Music/" + output_filename + "\"";
+    system(command_string.c_str());
+    if (platform() == "Windows")
+        system(("rd /s /q \"" + CWD + "/Process/\"").c_str());
+    else if (platform() == "Linux")
+        system(("rmdir \"" + CWD + "/Process/\"").c_str());
 }
 string get_audio_file_length(string command)
 {
@@ -176,7 +159,7 @@ int main()
     CWD = getCurrentDir();
 #elif __linux__
     CWD = get_current_dir_name();
-#endif // _OM_NO_IOSTREAM
+#endif
 
     vector<string> list_directory = list_dir("./Piano Samples/");
     vector<string> files_to_compile = {
@@ -209,8 +192,6 @@ int main()
         trim_note_audio_values.push_back(audio_length / note_types_value[index]);
         index++;
     }
-    for (double &new_trim : trim_note_audio_values)
-        cout << new_trim << endl;
-    combine_audio_files(files_to_compile, trim_note_audio_values, "Music/output.mp3");
+    combine_audio_files(files_to_compile, trim_note_audio_values, "output.mp3");
     return 0;
 }
