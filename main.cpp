@@ -19,34 +19,9 @@
 #include <limits.h>
 #include <direct.h>
 #elif __linux__
-// if were on linux
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
 #include <unistd.h>
 #endif
-// }
-
-// include_libs();
 using namespace std;
-/*
-LINUX
-mkdir -p /usr/local/src
-cd /usr/local/src
-git clone https://github.com/tomclegg/mp3cat
-cd mp3cat
-make install
-
-
-
-sudo apt install sox
-sudo apt-get install libsox-fmt-mp3
-
-WINDOWS
-install sox
-https://www.videohelp.com/software?d=sox-14.4.0-libmad-libmp3lame.zip
-copy and replace the contents to where ever you install sox to.
-
-*/
 
 const string MUSIC_DIRECTORY = "./Piano Samples/";
 
@@ -107,7 +82,6 @@ vector<string> list_dir(const char *path)
 void combine_audio_files(vector<string> notes, vector<double> note_types, string output_filename)
 {
     system(("mkdir \"" + CWD + "/Process\"").c_str());
-    string file_names_string = "";
     int index = 0;
     ofstream list_file;
     list_file.open("Process/list.txt");
@@ -115,12 +89,8 @@ void combine_audio_files(vector<string> notes, vector<double> note_types, string
     {
         string s_index = to_string(index);
         string trim_ammount = to_string(note_types[index]);
-        // system(("sox \"" + file_name + "\" \"" + CWD + "/Process/" + s_index + ".mp3\"
-        // reverse trim " + trim_ammount + " reverse").c_str());
         list_file << "file '" << s_index + ".mp3'\n";
-        // list_file << "file '" << CWD + "/Process/" + s_index + ".mp3'\n";
         system(("ffmpeg -t " + trim_ammount + " -i \"" + file_name + "\" -acodec copy \"" + CWD + "/Process/" + s_index + ".mp3\"").c_str());
-        file_names_string.append(" \"" + CWD + "/Process/" + s_index + ".mp3\" ");
         index++;
     }
     list_file.close();
@@ -129,7 +99,7 @@ void combine_audio_files(vector<string> notes, vector<double> note_types, string
     if (platform() == "Windows")
         system(("rd /s /q \"" + CWD + "/Process/\"").c_str());
     else if (platform() == "Linux")
-        system(("rmdir \"" + CWD + "/Process/\"").c_str());
+        system(("rm -rf \"" + CWD + "/Process/\"").c_str());
 }
 string get_audio_file_length(string command)
 {
@@ -153,9 +123,7 @@ string get_audio_file_length(string command)
 }
 int main()
 {
-#if _WIN64
-    CWD = getCurrentDir();
-#elif _WIN32
+#if _WIN64 || _WIN32
     CWD = getCurrentDir();
 #elif __linux__
     CWD = get_current_dir_name();
@@ -163,6 +131,51 @@ int main()
 
     vector<string> list_directory = list_dir("./Piano Samples/");
     vector<string> files_to_compile = {
+        list_directory[1],
+        list_directory[15],
+        list_directory[22],
+        list_directory[3],
+        list_directory[10],
+        list_directory[40],
+        list_directory[32],
+        list_directory[1],
+        list_directory[15],
+        list_directory[1],
+        list_directory[15],
+        list_directory[22],
+        list_directory[3],
+        list_directory[10],
+        list_directory[40],
+        list_directory[32],
+        list_directory[1],
+        list_directory[15],
+        list_directory[1],
+        list_directory[15],
+        list_directory[22],
+        list_directory[3],
+        list_directory[10],
+        list_directory[40],
+        list_directory[32],
+        list_directory[1],
+        list_directory[15],
+        list_directory[1],
+        list_directory[15],
+        list_directory[22],
+        list_directory[3],
+        list_directory[10],
+        list_directory[40],
+        list_directory[32],
+        list_directory[1],
+        list_directory[15],
+        list_directory[1],
+        list_directory[15],
+        list_directory[22],
+        list_directory[3],
+        list_directory[10],
+        list_directory[40],
+        list_directory[32],
+        list_directory[1],
+        list_directory[15],
         list_directory[1],
         list_directory[15],
         list_directory[22],
@@ -182,7 +195,53 @@ int main()
         1,
         4,
         16,
-        32};
+        32,
+        8,
+        16,
+        32,
+        4,
+        2,
+        1,
+        4,
+        16,
+        32,
+        8,
+        16,
+        32,
+        4,
+        2,
+        1,
+        4,
+        16,
+        32,
+        8,
+        16,
+        32,
+        4,
+        2,
+        1,
+        4,
+        16,
+        32,
+        8,
+        16,
+        32,
+        4,
+        2,
+        1,
+        4,
+        16,
+        32,
+        8,
+        16,
+        32,
+        4,
+        2,
+        1,
+        4,
+        16,
+        32,
+    };
     vector<double> trim_note_audio_values;
     int index = 0;
     for (string &file_name : files_to_compile)
@@ -192,6 +251,6 @@ int main()
         trim_note_audio_values.push_back(audio_length / note_types_value[index]);
         index++;
     }
-    combine_audio_files(files_to_compile, trim_note_audio_values, "output.mp3");
+    combine_audio_files(files_to_compile, trim_note_audio_values, "output1min.mp3");
     return 0;
 }
