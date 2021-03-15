@@ -5,7 +5,6 @@
 #include <dirent.h>
 #include <sstream>
 #include <vector>
-// #include <nlohmann/json.hpp>
 #include "nlohmann/json.hpp"
 #include <time.h>
 #include <iterator>
@@ -137,6 +136,12 @@ bool compareFunction(string a, string b) { return a < b; }
 
 int main(int argc, const char *argv[])
 {
+    vector<string> list_directory;
+    vector<string> files_to_compile;
+    vector<int> note_indexes;
+    vector<int> note_types_values;
+    vector<double> trim_note_audio_values;
+    int index = 0;
 #if _WIN64
     CWD = getCurrentDir();
 #elif _WIN32
@@ -145,20 +150,12 @@ int main(int argc, const char *argv[])
     CWD = get_current_dir_name();
 #endif
 
-    vector<string> list_directory = list_dir("./Piano Samples/");
-    sort(list_directory.begin(), list_directory.end(), compareFunction);
-
-    ifstream file("file.json");
+    replace(CWD.begin(), CWD.end(), '\\', '/'); // replace all '\\' to '/'
+    ifstream file("keys.json");
     json KEYS_JSON;
     file >> KEYS_JSON;
-    cout << KEYS_JSON << endl;
-    return 0;
-    for (string &l : list_directory)
-        cout << l << endl;
-    vector<string> files_to_compile;
-    vector<int> note_indexes;
-    vector<int> note_types_values;
-
+    for (json &key : KEYS_JSON[0]["keys"])
+        list_directory.push_back((CWD + "/Piano Samples/" + key.get<string>() + ".mp3").c_str());
     stringstream ss_notes(argv[1]);
     for (int i; ss_notes >> i;)
     {
@@ -174,13 +171,8 @@ int main(int argc, const char *argv[])
             ss_types_value.ignore();
     }
     for (int i = 0; i < note_indexes.size(); i++)
-    {
         files_to_compile.push_back(list_directory[i]);
-        cout << note_indexes[i] << endl;
-        cout << list_directory[note_indexes[i]] << endl;
-    }
-    vector<double> trim_note_audio_values;
-    int index = 0;
+
     for (string &file_name : files_to_compile)
     {
         string length = get_audio_file_length("ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"" + file_name + "\"");
@@ -188,6 +180,6 @@ int main(int argc, const char *argv[])
         trim_note_audio_values.push_back(audio_length / note_types_values[index]);
         index++;
     }
-    combine_audio_files(files_to_compile, trim_note_audio_values, "output1,1.mp3");
+    combine_audio_files(files_to_compile, trim_note_audio_values, argv[3]);
     return 0;
 }

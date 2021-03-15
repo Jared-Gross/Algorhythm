@@ -37,29 +37,33 @@
 </p>
 
 # Algorhythm
+
 - Generate music algorithmically at the click of a button.
 
-| Features | Windows  | Linux  |
-| ------- | --- | --- |
-| Generate Audio | ✔️ | ✔️ |
-| Generate Video | ❌  | ✔️ |
-| Theme support | ✔️  | ✔️ |
-| Sheet music | ✔️  | ✔️ |
+| Features       | Windows | Linux |
+| -------------- | ------- | ----- |
+| Generate Audio | ✔️       | ✔️     |
+| Generate Video | ❌       | ✔️     |
+| Theme support  | ✔️       | ✔️     |
+| Sheet music    | ✔️       | ✔️     |
 
 
 
 ## Installation/Downloads
 ### Windows
+
 Download the pre-release [here](https://github.com/JareBear12418/Algorhythm/releases).
 
 
 ### Linux
+
 To install for linux, instructions are listed [here](https://github.com/JareBear12418/Algorhythm/blob/master/README.md#linux).
 
 
 
 ## Setup for Development
 ### Windows
+
 Download this repository!
 
 Installing all python libraries:
@@ -97,6 +101,7 @@ Extract the zip folder and copy the following files into the Algorhythm director
 That should be everything you need to install for Windows.
 
 The Algorhythm directory should look similar to this:
+
 ```
 📦_Algorhythm
  ┣ 📂Genres
@@ -118,8 +123,8 @@ The Algorhythm directory should look similar to this:
  ┗ 📜requirements.txt
 ```
 
-
 ### Linux
+
 Download this repository!
 
 Installing all python libraries:
@@ -137,13 +142,15 @@ Install all requirements with:
 `pip install -r requirements.txt`
 
 Install ImageMagick with:
-```
+
+``` bash
 sudo apt-get install python-wand
 sudo apt-get install libmagickwand-dev
 sudo apt-get install imagemagick
 sudo apt-get update
 sudo apt-get upgrade
 ```
+
 If moviepy throws an error do the following:
 go to:
 
@@ -167,6 +174,7 @@ and your done, everything shoud work
 
 
 ## How it works
+
 - Using nothing but raw math/algorithms to generate music.
   - Simpling typing words, letters or dragging an image onto the screen and pressing a button you can generate music:
     - Alphabet
@@ -235,6 +243,7 @@ and your done, everything shoud work
 
 
 ## Plans
+
 - [ ] Make pre-configured genres.
 - [x] Text to music
 - [x] Image to music
@@ -255,6 +264,7 @@ and your done, everything shoud work
 
 
 ## ToDo 
+
 - [ ] Add play and stop button for playing the generated Audio.
 - [ ] `.qss` for Live control buttons.
 - [x] Try and make noise generator faster.
@@ -263,6 +273,7 @@ and your done, everything shoud work
 
 
 ## Bugs
+
 - [ ] Fix minor bugs with sheet music generator. 
 - [ ] Audio clipping with `demisemiquaver` & `semiquaver` notes.
   - Possible needs a longer fade, or better quality sounds.
@@ -272,8 +283,8 @@ and your done, everything shoud work
 - [ ] Live play needs a whole remake to sound similar to generated music.
   - Will probally have to generate the first 2 notes ahead of the current note.
 
-
 ## FAQ
+
 - Aren't their better music generators out there? 
     - **YES!!!** There are so much better music generators out there that use AI and Neural Networks and so on. So Yes, there are way betters ones out there then mine.
 
@@ -284,17 +295,30 @@ and your done, everything shoud work
 TL;DR To make an easy to use music Generator to make music at one click.
 
 ## Credits
-[QDarkStyleSheet](https://github.com/ColinDuquesnoy/QDarkStyleSheet)
-Full credit goes to: [ColinDuquesnoy](https://github.com/ColinDuquesnoy)
 
-[qdarkgraystyle](https://github.com/mstuttgart/qdarkgraystyle)
-Full credit goes to: [Michell Stuttgart](https://github.com/mstuttgart)
+### Themes
 
-[Breeze](https://github.com/Alexhuszagh/BreezeStyleSheets)
-Full credit goes to: [Alexander Huszagh](https://github.com/Alexhuszagh)
+  - [QDarkStyleSheet](https://github.com/ColinDuquesnoy/QDarkStyleSheet)
+    - Full credit goes to: [ColinDuquesnoy](https://github.com/ColinDuquesnoy)
 
-[classic, dark_blue, dark_orange](https://github.com/sommerc/pyqt-stylesheets)
-Full credit goes to: [Christoph Sommer](https://github.com/sommerc)
+  - [qdarkgraystyle](https://github.com/mstuttgart/qdarkgraystyle)
+    - Full credit goes to: [Michell Stuttgart](https://github.com/mstuttgart)
 
-[Perlin-Numpy](https://github.com/pvigier/perlin-numpy)
-Full credit goes to: [Pierre Vigier](https://github.com/pvigier)
+  - [Breeze](https://github.com/Alexhuszagh/BreezeStyleSheets)
+    - Full credit goes to: [Alexander Huszagh](https://github.com/Alexhuszagh)
+
+  - [classic, dark_blue, dark_orange](https://github.com/sommerc/pyqt-stylesheets)
+    - Full credit goes to: [Christoph Sommer](https://github.com/sommerc)
+
+### Scripts
+
+  - [Perlin-Numpy](https://github.com/pvigier/perlin-numpy)
+    - Full credit goes to: [Pierre Vigier](https://github.com/pvigier)
+
+ -  [nlohmann/json](https://github.com/nlohmann/json)
+    -  Full credit goes to: [Niels Lohmann](https://github.com/nlohmann)
+
+I'm only listing these credits because there is code/files directly included in my project that
+I do not own. Scripts such as PyQt5 or matplotlib, etc, won't be listed here because im not including
+any direct code from them in my repository, but ofcourse this project wouldn't be possible
+without them.
