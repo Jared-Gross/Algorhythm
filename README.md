@@ -176,22 +176,22 @@ and your done, everything shoud work
 ## How it works
 
 - Using nothing but raw math/algorithms to generate music.
-  - Simpling typing words, letters or dragging an image onto the screen and pressing a button you can generate music:
+  - Simply typing words, letters or dragging an image onto the screen and pressing a button you can generate music:
     - Alphabet
       - We assign every letter a number. (Ex. a = 1, b = 2, c = 3 ... z = 26)
       - Convert those values to the correct name files in [Piano Samples](Piano%20Samples) folder.
       - For note types (Ex. [Crochet, Minim]) we take the length of the word, for example ("bear") is 4 letters in length and 4 is closest to the value "Crochet" in our `note_types` dictionary in `main.py`
      - Image
         - Perlin Noise
-          - We generate perlin noise according to the set values in the GUI, and then we proceed with the Image section further below.
-        - Fractral Noise
-          - We generate fratral noise the same way we do Perlin noise.
+          - We generate Perlin noise according to the set values in the GUI, and then we proceed with the Image section further below.
+        - Fractural Noise
+          - We generate Fractural noise the same way we do Perlin noise.
         - Image
-          - This is basicly how the whole Image algorithm generates works I've explained this as best as I could and I will most likely clear things up later on, but this is the basicly how it works.
+          - This is basically how the whole Image algorithm generates works I've explained this as best as I could and I will most likely clear things up later on, but this is the basically how it works.
           - Due to my bad coding practices and not commenting what does what, I can't exactly say what happens, but I did write down the process elsewhere.
           - First we read all the bytes from the image using `numpy`.
-          - ***NOTE*** *An image that is 16x16 will have 256 pixels, or 256 notes to play. This is why I severly limited the size in the program, of course you can easily change the maxinum size value, but it will take much longer to generate the music.*
-          - We read all those pixels and store them into a `numpy` array. These arrays are **NOT** in `bytes` but in `RGB`. With these RGB values, we map them between 0 and 765 *(because 255x3=765, our `RGB` values can't be greater then this value, The color would have to be white (255, 255, 255) to reach this maxinum value)*
+          - ***NOTE*** *An image that is 16x16 will have 256 pixels, or 256 notes to play. This is why I severely limited the size in the program, of course you can easily change the maximum size value, but it will take much longer to generate the music.*
+          - We read all those pixels and store them into a `numpy` array. These arrays are **NOT** in `bytes` but in `RGB`. With these RGB values, we map them between 0 and 765 *(because 255x3=765, our `RGB` values can't be greater then this value, The color would have to be white (255, 255, 255) to reach this maximum value)*
           - After that, we map those numbers between the amount of notes we have. Say for example, our current pixel is (146, 242, 10) in the range between 0-765 this number is 398. Knowing these three numbers, we can map it between 0-61, which is the amount of notes we have. 
           - After the above, we know that our pixel is 398 in the range of: 0-765, But this doesn't tell us what note we need to play, so we need to scale this down to a range of 0-61, we achieve this with: `notes_value = [int(minAmountOfNotes + ((sum(row) - fixedRangeMin) / (fixedRangeMax - fixedRangeMin)) * (maxAmountOfNotes - minAmountOfNotes)) for row in res]` A better snippet of this is as the following: 
             ```python 
@@ -213,7 +213,7 @@ and your done, everything shoud work
         - Step
           - Step (+)
             - Pick three random numbers (starting number, ending number, and length)
-            - Lets say starting number is 3, ending number is 7, and lenght is 8
+            - Lets say starting number is 3, ending number is 7, and length is 8
             - Then we evenly increase from 3 to 7 using only 8 numbers.
             - Ex. [3, 4, 4, 5, 5, 6, 6, 7]
             - Convert those values to the correct name files in [Piano Samples](Piano%20Samples) folder.
@@ -223,7 +223,7 @@ and your done, everything shoud work
           - Step (Random)
             - We do the exact same thing as we did in `Step (+)` except we randomize the lists.
         - Random
-          - Does everything completly at random and may get removed in later versions... 
+          - Does everything completely at random and may get removed in later versions... 
           - *this was just a 'Proof of concept'*
         - Relation
           - Relation (W)
@@ -247,7 +247,7 @@ and your done, everything shoud work
 - [ ] Make pre-configured genres.
 - [x] Text to music
 - [x] Image to music
- - [x] Generate Perlin/Fractral noise.
+ - [x] Generate Perlin/Fractural noise.
  - [x] Add custom images.
   - [x] Exclude transparent pixels
 - [x] Possibly make the generation process faster.
@@ -281,7 +281,7 @@ and your done, everything shoud work
 - [ ] Pressing live with a multiplier enabled plays `x` amount of live music. *(but I might leave this as a feature, becuase why not?)*
 - [x] Don't add live generated music to Generated list in GUI
 - [ ] Live play needs a whole remake to sound similar to generated music.
-  - Will probally have to generate the first 2 notes ahead of the current note.
+  - Will probably have to generate the first 2 notes ahead of the current note.
 
 ## FAQ
 
@@ -289,8 +289,8 @@ and your done, everything shoud work
     - **YES!!!** There are so much better music generators out there that use AI and Neural Networks and so on. So Yes, there are way betters ones out there then mine.
 
 - Why did start this project? 
-    - Continuing from the above answere, I don't expect to make better music then AI generated music, although my goal is to reach a similar outcome, but it's hard to beat something that can think itself. 
-    - The single main reason why I started this project is to make simple piano music very easy to do. I wanted to make make a simple background piano song for some ambience, but I can't play piano that well, so I started looking for some programs that can generate music easily, I did find some great ones, that use AI, but setting one up and using one is by no means easy to do, and the average person would probaly not figure it out aswell. So I was like: "I'll just make my own." So, I set off on my adventure to create this, generating music, with on click, in a simple executable program, although the size of the program is pretty big, and the development installation is not easy to setup, but for the average user its great to use. 
+    - Continuing from the above answer, I don't expect to make better music then AI generated music, although my goal is to reach a similar outcome, but it's hard to beat something that can think itself. 
+    - The single main reason why I started this project is to make simple piano music very easy to do. I wanted to make make a simple background piano song for some ambience, but I can't play piano that well, so I started looking for some programs that can generate music easily, I did find some great ones, that use AI, but setting one up and using one is by no means easy to do, and the average person would probably not figure it out as well. So I was like: "I'll just make my own." So, I set off on my adventure to create this, generating music, with on click, in a simple executable program, although the size of the program is pretty big, and the development installation is not easy to setup, but for the average user its great to use. 
 
 TL;DR To make an easy to use music Generator to make music at one click.
 
@@ -319,6 +319,6 @@ TL;DR To make an easy to use music Generator to make music at one click.
     -  Full credit goes to: [Niels Lohmann](https://github.com/nlohmann)
 
 I'm only listing these credits because there is code/files directly included in my project that
-I do not own. Scripts such as PyQt5 or matplotlib, etc, won't be listed here because im not including
-any direct code from them in my repository, but ofcourse this project wouldn't be possible
+I do not own. Scripts such as PyQt5 or matplotlib, etc. won't be listed here because im not including
+any direct code from them in my repository, but of course this project wouldn't be possible
 without them.
