@@ -65,30 +65,6 @@ string getCurrentDir()
     return string(buff).substr(0, position);
 }
 #endif
-vector<string> list_dir(const char *path)
-{
-    struct dirent *entry;
-    DIR *dir = opendir(path);
-
-    vector<string> list_directory;
-    vector<string> list_directory2;
-
-    if (dir == NULL)
-        return list_directory;
-    while ((entry = readdir(dir)) != NULL)
-        list_directory.push_back(entry->d_name);
-    closedir(dir);
-
-    for (string &file_name : list_directory)
-    {
-        if (file_name != "." && file_name != "..")
-        {
-            replace(CWD.begin(), CWD.end(), '\\', '/'); // replace all 'x' to 'y'
-            list_directory2.push_back(CWD + "/Piano Samples/" + file_name);
-        }
-    }
-    return list_directory2;
-}
 
 void combine_audio_files(vector<string> notes, vector<double> note_types, string output_filename)
 {
