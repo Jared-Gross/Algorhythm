@@ -31,7 +31,6 @@
     <a href="https://forthebadge.com">
     <img src="https://forthebadge.com/images/badges/works-on-my-machine.svg">
 </p>
-
 <p align="center">
     <a href="https://forthebadge.com">
     <img src="http://ForTheBadge.com/images/badges/made-with-python.svg">
@@ -244,6 +243,12 @@ and your done, everything shoud work
 - TL;DR: **MAGIC!!!**
 
 
+## Scripts
+
+- main.py
+    - Main program file. 
+- Audio_Compiler.cpp
+    - C++ program to handle audio compiling alongside ffmpeg. This drastically improves performance and audio compilation time. Python is slow. While the solution implemented in Python is fast, and by no means slow, it falls short of C++ speed. When generating 60 seconds worth of music. 
 
 ## Plans
 
