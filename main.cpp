@@ -5,14 +5,20 @@
 #include <dirent.h>
 #include <sstream>
 #include <vector>
+// #include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 #include <time.h>
 #include <iterator>
 #include <algorithm>
 #include <fstream>
 #include <filesystem>
-// if were on windows
-// void include_libs(){
-#ifdef _WIN32 || _WIN64
+#ifdef _WIN32
+#include <filesystem>
+#include "process.h"
+#include <windows.h>
+#include <limits.h>
+#include <direct.h>
+#elif _WIN64
 #include <filesystem>
 #include "process.h"
 #include <windows.h>
@@ -22,16 +28,14 @@
 #include <unistd.h>
 #endif
 using namespace std;
-
+using json = nlohmann::json;
 const string MUSIC_DIRECTORY = "./Piano Samples/";
 
 string CWD = "";
 
 string platform()
 {
-#ifdef _WIN32
-    return "Windows";
-#elif _WIN64
+#ifdef _WIN32 || _WIN64
     return "Windows";
 #elif __APPLE__ || __MACH__
     return "Mac";
@@ -45,7 +49,15 @@ string platform()
     return "Other";
 #endif
 }
-#ifdef _WIN32 || _WIN64
+#ifdef _WIN32
+string getCurrentDir()
+{
+    char buff[MAX_PATH];
+    GetModuleFileName(NULL, buff, MAX_PATH);
+    string::size_type position = string(buff).find_last_of("\\/");
+    return string(buff).substr(0, position);
+}
+#elif _WIN64
 string getCurrentDir()
 {
     char buff[MAX_PATH];
@@ -121,136 +133,61 @@ string get_audio_file_length(string command)
     pclose(pipe);
     return result;
 }
-int main()
+bool compareFunction(string a, string b) { return a < b; }
+
+int main(int argc, const char *argv[])
 {
-#if _WIN64 || _WIN32
+#if _WIN64
+    CWD = getCurrentDir();
+#elif _WIN32
     CWD = getCurrentDir();
 #elif __linux__
     CWD = get_current_dir_name();
 #endif
 
     vector<string> list_directory = list_dir("./Piano Samples/");
-    vector<string> files_to_compile = {
-        list_directory[1],
-        list_directory[15],
-        list_directory[22],
-        list_directory[3],
-        list_directory[10],
-        list_directory[40],
-        list_directory[32],
-        list_directory[1],
-        list_directory[15],
-        list_directory[1],
-        list_directory[15],
-        list_directory[22],
-        list_directory[3],
-        list_directory[10],
-        list_directory[40],
-        list_directory[32],
-        list_directory[1],
-        list_directory[15],
-        list_directory[1],
-        list_directory[15],
-        list_directory[22],
-        list_directory[3],
-        list_directory[10],
-        list_directory[40],
-        list_directory[32],
-        list_directory[1],
-        list_directory[15],
-        list_directory[1],
-        list_directory[15],
-        list_directory[22],
-        list_directory[3],
-        list_directory[10],
-        list_directory[40],
-        list_directory[32],
-        list_directory[1],
-        list_directory[15],
-        list_directory[1],
-        list_directory[15],
-        list_directory[22],
-        list_directory[3],
-        list_directory[10],
-        list_directory[40],
-        list_directory[32],
-        list_directory[1],
-        list_directory[15],
-        list_directory[1],
-        list_directory[15],
-        list_directory[22],
-        list_directory[3],
-        list_directory[10],
-        list_directory[40],
-        list_directory[32],
-        list_directory[1],
-        list_directory[15],
-    };
-    vector<double> note_types_value = {
-        8,
-        16,
-        32,
-        4,
-        2,
-        1,
-        4,
-        16,
-        32,
-        8,
-        16,
-        32,
-        4,
-        2,
-        1,
-        4,
-        16,
-        32,
-        8,
-        16,
-        32,
-        4,
-        2,
-        1,
-        4,
-        16,
-        32,
-        8,
-        16,
-        32,
-        4,
-        2,
-        1,
-        4,
-        16,
-        32,
-        8,
-        16,
-        32,
-        4,
-        2,
-        1,
-        4,
-        16,
-        32,
-        8,
-        16,
-        32,
-        4,
-        2,
-        1,
-        4,
-        16,
-        32,
-    };
+    sort(list_directory.begin(), list_directory.end(), compareFunction);
+
+    ifstream file("file.json");
+    json KEYS_JSON;
+    file >> KEYS_JSON;
+    cout << KEYS_JSON << endl;
+    return 0;
+    for (string &l : list_directory)
+        cout << l << endl;
+    vector<string> files_to_compile;
+    vector<int> note_indexes;
+    vector<int> note_types_values;
+
+    stringstream ss_notes(argv[1]);
+    for (int i; ss_notes >> i;)
+    {
+        note_indexes.push_back(i);
+        if (ss_notes.peek() == ',')
+            ss_notes.ignore();
+    }
+    stringstream ss_types_value(argv[2]);
+    for (int i; ss_types_value >> i;)
+    {
+        note_types_values.push_back(i);
+        if (ss_types_value.peek() == ',')
+            ss_types_value.ignore();
+    }
+    for (int i = 0; i < note_indexes.size(); i++)
+    {
+        files_to_compile.push_back(list_directory[i]);
+        cout << note_indexes[i] << endl;
+        cout << list_directory[note_indexes[i]] << endl;
+    }
     vector<double> trim_note_audio_values;
     int index = 0;
     for (string &file_name : files_to_compile)
     {
         string length = get_audio_file_length("ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"" + file_name + "\"");
         double audio_length = ::atof(length.c_str());
-        trim_note_audio_values.push_back(audio_length / note_types_value[index]);
+        trim_note_audio_values.push_back(audio_length / note_types_values[index]);
         index++;
     }
-    combine_audio_files(files_to_compile, trim_note_audio_values, "output1min.mp3");
+    combine_audio_files(files_to_compile, trim_note_audio_values, "output1,1.mp3");
     return 0;
 }
