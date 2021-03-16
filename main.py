@@ -269,44 +269,50 @@ class GenerateMusicThread(QThread):
                 img_keys = []
                 img_note_keys = []
                 if not img_keys and 'Noise' in self.algorithmName:
-                    img_keys, img_note_keys = self.img_to_notes(
-                        self.noiseFileName)
+                    img_keys, img_note_keys = self.img_to_notes(self.noiseFileName)
                 elif self.algorithmName == 'Image':
                     img_keys, img_note_keys = self.img_to_notes('temp.png')
+                # final_time = sum(1 for i, j in enumerate(img_keys))
+                
+                # Python implementation:
+                #for index, j in enumerate(img_keys):
+                    #selected_note_type = img_note_keys[index]
+                    #self.info_note_types.append(selected_note_type)
+                    #selected_note_type = step_available_notes_types[i]
+                    #note = AudioSegment.from_mp3(
+                        #f"{piano_samples}{img_keys[index]}.mp3")
+                    #note = note + 3  # increase audio
 
-                final_time = sum(1 for i, j in enumerate(img_keys))
+                    #self.info_notes.append(img_keys[index])
+                    #note_length = note.duration_seconds * 1000  # milliseconds
 
-                for index, j in enumerate(img_keys):
-                    selected_note_type = img_note_keys[index]
-                    self.info_note_types.append(selected_note_type)
-                    # selected_note_type = step_available_notes_types[i]
-                    note = AudioSegment.from_mp3(
-                        f"{piano_samples}{img_keys[index]}.mp3")
-                    note = note + 3  # increase audio
+                    #num += 1
+                    #sum_of_notes += index
+                    #sum_of_note_types += selected_note_type
 
-                    self.info_notes.append(img_keys[index])
-                    note_length = note.duration_seconds * 1000  # milliseconds
+                    #note = note[:note_length / selected_note_type]
 
-                    num += 1
-                    sum_of_notes += index
-                    sum_of_note_types += selected_note_type
-
-                    note = note[:note_length / selected_note_type]
-
-                    self.info_duration_per_note.append(note.duration_seconds)
-                    if self.play_live:
-                        play(note)
-                    final_song = note if not final_song else final_song + note
-                    self.generated.emit(
-                        'Status: Generating...', ((num / final_time) * 100),
-                        self.progressBar, self.buttonName, self.buttonPlay, self.buttonDelete,
-                        self.labelStatus, self.comboExport, final_name, final_song, self.info_notes,
-                        self.info_note_types, self.info_duration_per_note)
-                    noise_finished = True
+                    #self.info_duration_per_note.append(note.duration_seconds)
+                    #if self.play_live:
+                        #play(note)
+                    #final_song = note if not final_song else final_song + note
+                    #self.generated.emit(
+                        #'Status: Generating...', ((num / final_time) * 100),
+                        #self.progressBar, self.buttonName, self.buttonPlay, self.buttonDelete,
+                        #self.labelStatus, self.comboExport, final_name, final_song, self.info_notes,
+                        #self.info_note_types, self.info_duration_per_note)
+                latest_update_date = datetime.today()
+                latest_update_date_formated = str(latest_update_date.strftime("%m%d%Y%H%M%S%f"))
+                img_keys = str(str(img_keys).replace(' ', '').replace('[', '').replace(']', '').replace('\'', ''))
+                img_note_keys = str(str(img_note_keys).replace(' ', '').replace('[', '').replace(']', '').replace('\'', ''))
+                p = subprocess.Popen(['Audio_Compiler', img_keys, img_note_keys, f'{str(self.algorithmName)}_{latest_update_date_formated}.mp3'])
+                p.communicate()
+                noise_finished = True
             if not self.play_live and alphabet_finished or noise_finished or final_song.duration_seconds >= self.seconds:
-                final_name = (
-                    f'{str(self.algorithmName)} {str(num)}{str(sum_of_notes)}{str(sum_of_note_types)}{str(int(final_song.duration_seconds))}.mp3')
-                final_song.fade_in(6000).fade_out(6000)
+                final_name = (f'{str(self.algorithmName)} {latest_update_date_formated}.mp3')
+                #final_name = (f'{str(self.algorithmName)} {str(num)}{str(sum_of_notes)}{str(sum_of_note_types)}{str(int(final_song.duration_seconds))}.mp3')
+                try: final_song.fade_in(6000).fade_out(6000)
+                except: pass
                 self.generated.emit('Status: Finished!', (100), self.progressBar, self.buttonName,
                                     self.buttonPlay, self.buttonDelete, self.labelStatus, self.comboExport,
                                     final_name, final_song, self.info_notes, self.info_note_types,
@@ -489,7 +495,7 @@ class GenerateMusicThread(QThread):
                                       enumerate(note_types_value)]
         noise_number_notes = [keys_json[0]['keys'][j]
                               for i, j in enumerate(closest_numbers)]
-        return noise_number_notes, closest_numbers_note_types
+        return notes_value, closest_numbers_note_types
 
     def closest(self, lst, K):
         return lst[min(range(len(lst)), key=lambda i: abs(lst[i] - K))]
@@ -567,7 +573,6 @@ class GeneratePerlinThread(QThread):
 
 
 class mainwindowUI(QMainWindow):
-
     def __init__(self):
         super(mainwindowUI, self).__init__()
         uic.loadUi(UI_folder + 'mainwindow.ui', self)
@@ -1818,7 +1823,6 @@ class mainwindowUI(QMainWindow):
 
 
 class licensewindowUI(QDialog):
-
     def __init__(self):
         super(licensewindowUI, self).__init__()
         uic.loadUi(UI_folder + 'license.ui', self)
@@ -1842,7 +1846,6 @@ class licensewindowUI(QDialog):
 
 
 class settingsUI(QWidget):
-
     def __init__(self, mainwindow):
         super(settingsUI, self).__init__()
         uic.loadUi(UI_folder + 'settings.ui', self)
@@ -2051,7 +2054,8 @@ class settingsUI(QWidget):
     def closeEvent(self, event):
         reply = QMessageBox.question(self, 'Quit?',
                                      'Are you sure you want to quit?',
-                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                                     QMessageBox.Yes | QMessageBox.No, 
+                                     QMessageBox.No)
 
         if reply == QMessageBox.Yes:
             if not type(event) == bool:
@@ -2079,8 +2083,9 @@ class CustomImage(QLabel):
     def dropEvent(self, e):
         global custom_image_path
         m = e.mimeData()
-        if m.hasUrls():
-            custom_image_path = m.urls()[0].toString().replace('file://', '')
+        if m.hasUrls(): 
+            if current_platform == "Linux": custom_image_path = m.urls()[0].toString().replace('file://', '')
+            if current_platform == "Windows": custom_image_path = m.urls()[0].toString().replace('file:///', '')
         resize_size = (self.slider.value(),
                        self.slider.value())
         Image.open(custom_image_path).resize(resize_size).save('temp.png')
@@ -2099,8 +2104,7 @@ keys_file = os.path.dirname(os.path.realpath(__file__)) + '/keys.json'
 image_folder = os.path.dirname(os.path.realpath(__file__)) + '/Images/'
 themes_folder = os.path.dirname(os.path.realpath(__file__)) + '/Themes/'
 genres_folder = os.path.dirname(os.path.realpath(__file__)) + '/Genres/'
-music_sheets_folder = os.path.dirname(
-    os.path.realpath(__file__)) + '/Music Sheets/'
+music_sheets_folder = os.path.dirname(os.path.realpath(__file__)) + '/Music Sheets/'
 config_file = os.path.dirname(os.path.realpath(__file__)) + '/config.json'
 piano_samples = os.path.dirname(os.path.realpath(__file__)) + '/Piano Samples/'
 
@@ -2120,7 +2124,8 @@ if not os.path.exists(config_file):
                         "Default Export Path": [str(os.path.dirname(os.path.realpath(__file__)) + '/Music/')],
                         "Toggle Sound On": ["False"]})
     with open(config_file, mode='w+', encoding='utf-8') as file:
-        json.dump(config_json, file, ensure_ascii=True,
+        json.dump(config_json, file, 
+                  ensure_ascii=True,
                   indent=4)
 
 with open(config_file) as file:
