@@ -59,7 +59,7 @@ latest_update_date_formated = latest_update_date.strftime(
 
 company = 'TheCodingJs'
 title = 'Algorhythm'
-version = 'v0.2'
+version = 'v0.3'
 
 
 class GenerateMusicThread(QThread):
