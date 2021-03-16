@@ -34,7 +34,9 @@ string CWD = "";
 
 string platform()
 {
-#ifdef _WIN32 || _WIN64
+#ifdef _WIN32
+    return "Windows";
+#elif _WIN64
     return "Windows";
 #elif __APPLE__ || __MACH__
     return "Mac";
@@ -127,7 +129,7 @@ int main(int argc, const char *argv[])
 #endif
 
     replace(CWD.begin(), CWD.end(), '\\', '/'); // replace all '\\' to '/'
-    ifstream file("keys.json");
+    ifstream file(CWD + "/keys.json");
     json KEYS_JSON;
     file >> KEYS_JSON;
     for (json &key : KEYS_JSON[0]["keys"])
@@ -147,7 +149,7 @@ int main(int argc, const char *argv[])
             ss_types_value.ignore();
     }
     for (int i = 0; i < note_indexes.size(); i++)
-        files_to_compile.push_back(list_directory[i]);
+        files_to_compile.push_back(list_directory[note_indexes[i]]);
 
     for (string &file_name : files_to_compile)
     {
