@@ -248,7 +248,20 @@ and your done, everything shoud work
 - main.py
     - Main program file. 
 - Audio_Compiler.cpp
-    - C++ program to handle audio compiling alongside ffmpeg. This drastically improves performance and audio compilation time. Python is slow. While the solution implemented in Python is fast, and by no means slow, it falls short of C++ speed. When generating 60 seconds worth of music. 
+    - C++ program to handle audio compiling alongside ffmpeg. This drastically improves performance and audio compilation time. Python is slow. While the solution implemented in Python is fast, and by no means slow, it falls short of C++ speed.
+- Specs:
+
+C++ vs Python Using the [Algorhythm.png](https://github.com/JareBear12418/Algorhythm/blob/master/icon.png) image at 32x32 (363 pixels/notes to process). 
+
+|      Tasks       |   C++    |  Python |Difference | Speed increase %|
+| ---------------- | -------- | ------- | --------- | --------------- |
+| Compiling Audio  | 28.173/s | 42.06/s | 13.887/s |    +33.02%      |
+| Saving Audio     | 0.793/s  | 9.81/s  | 9.017/s  |    +1,137.07%   |
+| Total Time       | 28.966/s | 51.87/s | 22.904/s |    +44.16%      |
+
+Using Image to Music algorithm was the best way to ensure that they both would have the same amount of notes to process. 
+
+We noticed a extreme speed difference when running these test on either Linux or Windows. Both of the above tests were run on Windows. Running the C++ Audio Compiler on Linux brought the total time down to around 14 seconds.  
 
 ## Plans
 
