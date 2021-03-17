@@ -119,6 +119,7 @@ int main(int argc, const char *argv[])
     vector<int> note_indexes;
     vector<int> note_types_values;
     vector<double> trim_note_audio_values;
+    vector<string> note_audio_values;
     int index = 0;
 #if _WIN64
     CWD = getCurrentDir();
@@ -129,11 +130,20 @@ int main(int argc, const char *argv[])
 #endif
 
     replace(CWD.begin(), CWD.end(), '\\', '/'); // replace all '\\' to '/'
-    ifstream file(CWD + "/keys.json");
+//     GET ALL KEYS
+    ifstream file1(CWD + "/keys.json");
     json KEYS_JSON;
-    file >> KEYS_JSON;
+    file1 >> KEYS_JSON;
     for (json &key : KEYS_JSON[0]["keys"])
         list_directory.push_back((CWD + "/Piano Samples/" + key.get<string>() + ".mp3").c_str());
+//     GET ALL KEY DURATIONS
+    ifstream file2(CWD + "/Key_Durations.json");
+    json KEYS_DURATION_JSON;
+    file2 >> KEYS_DURATION_JSON;
+    for (json &key : KEYS_DURATION_JSON[0]["Key_Durations"])
+        note_audio_values.push_back(key.get<string>().c_str());
+    
+    
     stringstream ss_notes(argv[1]);
     for (int i; ss_notes >> i;)
     {
@@ -150,11 +160,10 @@ int main(int argc, const char *argv[])
     }
     for (int i = 0; i < note_indexes.size(); i++)
         files_to_compile.push_back(list_directory[note_indexes[i]]);
-
-    for (string &file_name : files_to_compile)
+    for (string &duration : note_audio_values)
     {
-        string length = get_audio_file_length("ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"" + file_name + "\"");
-        double audio_length = ::atof(length.c_str());
+//         string length = get_audio_file_length("ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"" + file_name + "\"");
+        double audio_length = ::atof(duration.c_str());
         trim_note_audio_values.push_back(audio_length / note_types_values[index]);
         index++;
     }
