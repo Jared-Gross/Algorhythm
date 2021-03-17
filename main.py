@@ -301,11 +301,15 @@ class GenerateMusicThread(QThread):
                         #self.progressBar, self.buttonName, self.buttonPlay, self.buttonDelete,
                         #self.labelStatus, self.comboExport, final_name, final_song, self.info_notes,
                         #self.info_note_types, self.info_duration_per_note)
+                        
                 latest_update_date = datetime.today()
                 latest_update_date_formated = str(latest_update_date.strftime("%m%d%Y%H%M%S%f"))
                 img_keys = str(str(img_keys).replace(' ', '').replace('[', '').replace(']', '').replace('\'', ''))
                 img_note_keys = str(str(img_note_keys).replace(' ', '').replace('[', '').replace(']', '').replace('\'', ''))
-                p = subprocess.Popen(['Audio_Compiler', img_keys, img_note_keys, f'{str(self.algorithmName)}_{latest_update_date_formated}.mp3'])
+                if current_platform == "Windows": 
+                    p = subprocess.Popen(['Audio_Compiler', img_keys, img_note_keys, f'{str(self.algorithmName)}_{latest_update_date_formated}.mp3'])
+                elif current_platform == "Linux": 
+                    p = subprocess.Popen(['./Audio_Compiler', img_keys, img_note_keys, f'{str(self.algorithmName)}_{latest_update_date_formated}.mp3'])
                 p.communicate()
                 noise_finished = True
             if not self.play_live and alphabet_finished or noise_finished or final_song.duration_seconds >= self.seconds:
