@@ -90,28 +90,6 @@ void combine_audio_files(vector<string> notes, vector<double> note_types, string
     else if (platform() == "Linux")
         system(("rm -rf \"" + CWD + "/Process/\"").c_str());
 }
-string get_audio_file_length(string command)
-{
-    char buffer[128];
-    string result = "";
-    // Open pipe to file
-    FILE *pipe = popen(command.c_str(), "r");
-    if (!pipe)
-        return "popen failed!";
-
-    // read till end of process:
-    while (!feof(pipe))
-    {
-        // use buffer to read and add to result
-        if (fgets(buffer, 128, pipe) != NULL)
-            result += buffer;
-    }
-
-    pclose(pipe);
-    return result;
-}
-bool compareFunction(string a, string b) { return a < b; }
-
 int main(int argc, const char *argv[])
 {
     vector<string> list_directory;
@@ -119,7 +97,7 @@ int main(int argc, const char *argv[])
     vector<int> note_indexes;
     vector<int> note_types_values;
     vector<double> trim_note_audio_values;
-    vector<string> note_audio_values;
+    vector<double> note_audio_values;
     int index = 0;
 #if _WIN64
     CWD = getCurrentDir();
@@ -141,9 +119,9 @@ int main(int argc, const char *argv[])
     json KEYS_DURATION_JSON;
     file2 >> KEYS_DURATION_JSON;
     for (json &key : KEYS_DURATION_JSON[0]["Key_Durations"])
-        note_audio_values.push_back(key.get<string>().c_str());
+        note_audio_values.push_back(key.get<double>());
     
-    
+//     NOTES
     stringstream ss_notes(argv[1]);
     for (int i; ss_notes >> i;)
     {
@@ -151,6 +129,7 @@ int main(int argc, const char *argv[])
         if (ss_notes.peek() == ',')
             ss_notes.ignore();
     }
+//     NOTE_TYPES
     stringstream ss_types_value(argv[2]);
     for (int i; ss_types_value >> i;)
     {
@@ -158,13 +137,13 @@ int main(int argc, const char *argv[])
         if (ss_types_value.peek() == ',')
             ss_types_value.ignore();
     }
+//     GET APPROPRIATE AUDIO FILES FROM INDEX
     for (int i = 0; i < note_indexes.size(); i++)
         files_to_compile.push_back(list_directory[note_indexes[i]]);
-    for (string &duration : note_audio_values)
+    for (double &duration : note_audio_values)
     {
-//         string length = get_audio_file_length("ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"" + file_name + "\"");
-        double audio_length = ::atof(duration.c_str());
-        trim_note_audio_values.push_back(audio_length / note_types_values[index]);
+//         double audio_length = ::atof(duration.c_str());
+        trim_note_audio_values.push_back(duration / note_types_values[index]);
         index++;
     }
     combine_audio_files(files_to_compile, trim_note_audio_values, argv[3]);
