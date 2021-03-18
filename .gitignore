@@ -141,3 +141,7 @@ config.json
 
 # Other/Testing Scripts
 all QT Icons.py
+*.kdev4
+*.exe
+/Process/
+*.pyc
