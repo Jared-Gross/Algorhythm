@@ -142,7 +142,6 @@ int main(int argc, const char *argv[])
         files_to_compile.push_back(list_directory[note_indexes[i]]);
     for (double &duration : note_audio_values)
     {
-//         double audio_length = ::atof(duration.c_str());
         trim_note_audio_values.push_back(duration / note_types_values[index]);
         index++;
     }
