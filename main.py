@@ -277,13 +277,14 @@ class GenerateMusicThread(QThread):
                 # Python implementation:
                 #for index, j in enumerate(img_keys):
                     #selected_note_type = img_note_keys[index]
-                    #self.info_note_types.append(selected_note_type)
                     #selected_note_type = step_available_notes_types[i]
                     #note = AudioSegment.from_mp3(
                         #f"{piano_samples}{img_keys[index]}.mp3")
                     #note = note + 3  # increase audio
 
-                    #self.info_notes.append(img_keys[index])
+                self.info_notes = [keys_json[0]['keys'][j] for i, j in enumerate(img_keys)]
+                self.info_duration_per_note = [keys_duration_json[0]['Key_Durations'][j] for i, j in enumerate(img_keys)]
+                self.info_note_types = img_note_keys
                     #note_length = note.duration_seconds * 1000  # milliseconds
 
                     #num += 1
@@ -292,7 +293,6 @@ class GenerateMusicThread(QThread):
 
                     #note = note[:note_length / selected_note_type]
 
-                    #self.info_duration_per_note.append(note.duration_seconds)
                     #if self.play_live:
                         #play(note)
                     #final_song = note if not final_song else final_song + note
@@ -499,7 +499,7 @@ class GenerateMusicThread(QThread):
                                       enumerate(note_types_value)]
         noise_number_notes = [keys_json[0]['keys'][j]
                               for i, j in enumerate(closest_numbers)]
-        return notes_value, closest_numbers_note_types
+        return closest_numbers, closest_numbers_note_types
 
     def closest(self, lst, K):
         return lst[min(range(len(lst)), key=lambda i: abs(lst[i] - K))]
@@ -2105,6 +2105,7 @@ alphabetValList = [i + 1 for i in range(len(alphabetList))]
 
 UI_folder = os.path.dirname(os.path.realpath(__file__)) + '/GUI/'
 keys_file = os.path.dirname(os.path.realpath(__file__)) + '/keys.json'
+keys_duration_file = os.path.dirname(os.path.realpath(__file__)) + '/Key_Durations.json'
 image_folder = os.path.dirname(os.path.realpath(__file__)) + '/Images/'
 themes_folder = os.path.dirname(os.path.realpath(__file__)) + '/Themes/'
 genres_folder = os.path.dirname(os.path.realpath(__file__)) + '/Genres/'
@@ -2174,6 +2175,8 @@ for i in all_genre_files:
     genre_names.append(i)
 with open(keys_file) as file:
     keys_json = json.load(file)
+with open(keys_duration_file) as file:
+    keys_duration_json = json.load(file)
 try:
     with open(genres_file) as file:
         genres_json = json.load(file)
@@ -2242,3 +2245,4 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = mainwindowUI()
     app.exec_()
+
