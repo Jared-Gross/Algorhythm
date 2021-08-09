@@ -12,7 +12,7 @@ numpy == 1.19.2
 perlin_numpy == 0.0.0
 playsound == 1.2.2
 pydub == 0.24.1
-pywin32 == 228
+pywin32 == 301
 qdarkgraystyle == 1.0.2
 regex == 2020.11.13
 win10toast == 0.9
